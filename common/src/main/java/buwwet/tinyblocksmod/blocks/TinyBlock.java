@@ -4,6 +4,7 @@ import buwwet.tinyblocksmod.TinyBlocksMod;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -80,5 +81,11 @@ public class TinyBlock extends Block implements EntityBlock {
         tinyBlockEntity.incrementCounter();
 
         return super.use(blockState, level, blockPos, player, interactionHand, blockHitResult);
+    }
+
+    // We don't want to render the block, just the tile entity.
+    @Override
+    public boolean skipRendering(BlockState blockState, BlockState blockState2, Direction direction) {
+        return true;
     }
 }

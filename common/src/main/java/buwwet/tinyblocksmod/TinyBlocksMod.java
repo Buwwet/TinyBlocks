@@ -2,11 +2,18 @@ package buwwet.tinyblocksmod;
 
 import buwwet.tinyblocksmod.blocks.TinyBlock;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
+import buwwet.tinyblocksmod.blocks.entities.render.TinyBlockEntityRenderer;
 import com.google.common.base.Suppliers;
 import dev.architectury.registry.CreativeTabRegistry;
+import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
+import dev.architectury.registry.client.rendering.RenderTypeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -32,19 +39,24 @@ public class TinyBlocksMod {
                     () -> new ItemStack(TinyBlocksMod.EXAMPLE_ITEM.get())));
     
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(MOD_ID, Registries.ITEM);
+    // All the block magick
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(MOD_ID, Registries.BLOCK);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(MOD_ID, Registries.BLOCK_ENTITY_TYPE);
 
+    //public static final DeferredRegister<?> BLOCK_ENTITY_RENDERERS = DeferredRegister.create(MOD_ID, Registries.BLOCK_ENTITY_TYPE)
     // Registering items
     public static final RegistrySupplier<Block> TINY_BLOCK = BLOCKS.register("tiny_block", () ->
        new TinyBlock(BlockBehaviour.Properties.of()
                .isSuffocating((blockState, blockGetter, blockPos) -> false)
                .isRedstoneConductor((blockState, blockGetter, blockPos) -> false)
                .dynamicShape()
+               .noOcclusion()
+
+
        )
     );
 
-    public static final RegistrySupplier<BlockEntityType<?>> TINY_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("tiny_block_entity", () ->
+    public static final RegistrySupplier<BlockEntityType<TinyBlockEntity>> TINY_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register("tiny_block_entity", () ->
         BlockEntityType.Builder.of(TinyBlockEntity::new, TINY_BLOCK.get()).build(null)
     );
     public static final RegistrySupplier<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () ->
@@ -55,7 +67,12 @@ public class TinyBlocksMod {
         ITEMS.register();
         BLOCKS.register();
         BLOCK_ENTITY_TYPES.register();
-        
+
+        // Register the rendering for the block entity.
+        BlockEntityRendererRegistry.register(TINY_BLOCK_ENTITY.get(), new TinyBlockEntityRenderer(null));
+        // Make the block not remove the faces of other blocks.
+        RenderTypeRegistry.register(RenderType.translucent(), TINY_BLOCK.get());
+
         System.out.println(ExampleExpectPlatform.getConfigDirectory().toAbsolutePath().normalize().toString());
     }
 }
