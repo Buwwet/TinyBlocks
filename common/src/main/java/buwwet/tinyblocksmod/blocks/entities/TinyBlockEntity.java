@@ -1,6 +1,7 @@
 package buwwet.tinyblocksmod.blocks.entities;
 
 import buwwet.tinyblocksmod.TinyBlocksMod;
+import buwwet.tinyblocksmod.world.LevelBlockStorageManager;
 import com.mojang.authlib.minecraft.client.MinecraftClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -8,6 +9,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.gui.MinecraftServerGui;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,11 +20,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class TinyBlockEntity extends BlockEntity {
 
+    BlockPos blockStoragePosition;
     int state = 2;
 
     public TinyBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(TinyBlocksMod.TINY_BLOCK_ENTITY.get(), blockPos, blockState);
-        System.out.println("Hello world, I'm a block entity!");
+
+        System.out.println("Hello world, I'm a block entity! ");
+        blockStoragePosition = LevelBlockStorageManager.getBlockStoragePosition(blockPos);
+
 
     }
 
@@ -31,6 +40,7 @@ public class TinyBlockEntity extends BlockEntity {
         System.out.println("state =  " + this.state);
 
     }
+
 
 
 
@@ -69,5 +79,9 @@ public class TinyBlockEntity extends BlockEntity {
     public int getCounter() {
         return state;
     }
+
+    public BlockPos getBlockStoragePosition() {return blockStoragePosition; }
+
+
 
 }

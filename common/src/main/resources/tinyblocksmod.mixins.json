@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "buwwet.tinyblocksmod.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ClientChunkCacheMixin"
+  ],
+  "client": [
+    "ClientChunkCacheMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

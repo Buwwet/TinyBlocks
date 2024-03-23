@@ -5,10 +5,16 @@ import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -79,6 +85,32 @@ public class TinyBlock extends Block implements EntityBlock {
         System.out.println("Player clicked us!");
         TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) level.getBlockEntity(blockPos);
         tinyBlockEntity.incrementCounter();
+
+        if (level.getServer() != null) {
+            MinecraftServer server = level.getServer();
+            ServerLevel serverLevel = (ServerLevel) level;
+            ServerPlayer serverPlayer = (ServerPlayer) player;
+
+            var chunkPos = new ChunkPos(tinyBlockEntity.getBlockStoragePosition());
+            serverLevel.setChunkForced(chunkPos.x, chunkPos.z, true);
+
+            //server.getConnection().getConnections()
+            //serverPlayer.connection.disconnect(Component.literal("byebye"));
+
+
+            // okay we are sending it
+            serverPlayer.connection.send(
+                    new ClientboundLevelChunkWithLightPacket(
+                            serverLevel.getChunkAt(tinyBlockEntity.getBlockStoragePosition()),
+                            serverLevel.getLightEngine(),
+                            null, null
+                    )
+            );
+
+            TinyBlocksMod.LOGGER.info("AAAAAAAAAAA " + serverLevel.isLoaded(tinyBlockEntity.getBlockStoragePosition()));
+
+
+        }
 
         return super.use(blockState, level, blockPos, player, interactionHand, blockHitResult);
     }

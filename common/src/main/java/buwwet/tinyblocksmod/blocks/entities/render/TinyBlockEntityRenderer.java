@@ -27,19 +27,20 @@ public class TinyBlockEntityRenderer implements BlockEntityRenderer<TinyBlockEnt
     public void render(TinyBlockEntity blockEntity, float f, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, int j) {
         poseStack.pushPose();
 
-        // For our first test, we will be using the block on our right to "mimic", so we can master the rendering function before the wild stuff.
-
 
         PoseStack.Pose pose = poseStack.last();
         Matrix4f matrix4f = pose.pose();
         Matrix3f matrix3f = pose.normal();
+
+        // Get the block storage position of this tiny block.
+        BlockPos rootPosition = blockEntity.getBlockStoragePosition();
 
 
         for (int z_offset = 0; z_offset < 4; z_offset++) {
             for (int y_offset = 0; y_offset < 4; y_offset++) {
                 for (int x_offset = 0; x_offset < 4; x_offset++) {
                     // Get the target block position
-                    BlockPos targetPosition = blockEntity.getBlockPos().east().offset(x_offset, y_offset, z_offset);
+                    BlockPos targetPosition = rootPosition.offset(x_offset, y_offset, z_offset);
                     // Check if there is a block entity there
                     BlockEntity targetBlockEntity = blockEntity.getLevel().getBlockEntity(targetPosition);
                     if (targetBlockEntity != null) {

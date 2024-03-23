@@ -27,9 +27,18 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
+
 
 public class TinyBlocksMod {
     public static final String MOD_ID = "tinyblocks";
+
+
+    public static final Logger LOGGER = Logger.getLogger(MOD_ID);
+
+
+
+
     // We can use this if we don't want to use DeferredRegister
     public static final Supplier<RegistrarManager> REGISTRIES = Suppliers.memoize(() -> RegistrarManager.get(MOD_ID));
 
@@ -73,6 +82,7 @@ public class TinyBlocksMod {
         BlockEntityRendererRegistry.register(TINY_BLOCK_ENTITY.get(), new TinyBlockEntityRenderer(null));
         // Make the block not remove the faces of other blocks.
         RenderTypeRegistry.register(RenderType.translucent(), TINY_BLOCK.get());
+
 
 
 
