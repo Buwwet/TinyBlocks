@@ -4,6 +4,7 @@
   "package": "buwwet.tinyblocksmod.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "ServerChunkMapMixin"
   ],
   "client": [
     "ClientChunkCacheStorageMixin",

@@ -26,7 +26,7 @@ import java.util.List;
 public class ServerStorageChunkManager {
 
 
-    public static HashMap<ChunkPos, List<BlockPos>> loadedChunks = new HashMap<>();
+    public static HashMap<ChunkPos, List<ServerPlayer>> loadedChunks = new HashMap<>();
 
 
     public static void requestStorageChunk(Player player, BlockPos tinyBlockPos) {
@@ -56,14 +56,17 @@ public class ServerStorageChunkManager {
                 // Chunk hasn't been loaded yet!
                 serverLevel.setChunkForced(chunkPos.x, chunkPos.z, true);
 
-                ArrayList<BlockPos> newListPos = new ArrayList<>();
-                newListPos.add(tinyBlockPos);
+                ArrayList<ServerPlayer> newListPos = new ArrayList<>();
+                newListPos.add(serverPlayer);
                 loadedChunks.put(chunkPos, newListPos);
+
+                TinyBlocksMod.LOGGER.info("New chunk loaded: " + serverPlayer.getName().getString());
+
 
             } else {
                 // Add another block listener
-                if (!loadedChunks.get(chunkPos).contains(tinyBlockPos)) {
-                    loadedChunks.get(chunkPos).add(tinyBlockPos);
+                if (!loadedChunks.get(chunkPos).contains(serverPlayer)) {
+                    loadedChunks.get(chunkPos).add(serverPlayer);
                 }
             }
 
@@ -76,18 +79,7 @@ public class ServerStorageChunkManager {
                             null, null
                     )
             );
-
-
-
-
         }
-
-        // Now we check if the chunk is already loaded for us
-
-            // Load the chunk and mark it as forced if it hasn't been loaded yet
-
-        // Return a full chunk packet.
-
     }
 
     public static void removeStorageChunkListener(Player player, BlockPos tinyBlockPos) {
