@@ -4,9 +4,10 @@
   "package": "buwwet.tinyblocksmod.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ClientChunkCacheMixin"
+
   ],
   "client": [
+    "ClientChunkCacheStorageMixin",
     "ClientChunkCacheMixin"
   ],
   "injectors": {

@@ -4,7 +4,7 @@ import buwwet.tinyblocksmod.TinyBlocksMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 
-public class LevelBlockStorageManager {
+public class LevelBlockStorageUtil {
 
     public static int WORLD_STORAGE_START = 1000;
 
@@ -54,7 +54,7 @@ public class LevelBlockStorageManager {
 
         // Sum the column offset
         Vec3i tinyBlockPosition = new Vec3i(start_x + tinyblock_x, tinyblock_y, start_z + tinyblock_z).offset(columnOffset(blockPos.getY()));
-        TinyBlocksMod.LOGGER.info("WHAT + " + tinyBlockPosition);
+        //TinyBlocksMod.LOGGER.info("WHAT + " + tinyBlockPosition);
 
         return new BlockPos(tinyBlockPosition);
 

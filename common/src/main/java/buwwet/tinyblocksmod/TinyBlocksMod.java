@@ -3,7 +3,9 @@ package buwwet.tinyblocksmod;
 import buwwet.tinyblocksmod.blocks.TinyBlock;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import buwwet.tinyblocksmod.blocks.entities.render.TinyBlockEntityRenderer;
+import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
 import com.google.common.base.Suppliers;
+import dev.architectury.networking.NetworkManager;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.RenderTypeRegistry;
@@ -15,8 +17,10 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -71,6 +75,10 @@ public class TinyBlocksMod {
     );
     public static final RegistrySupplier<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () ->
             new Item(new Item.Properties().arch$tab(TinyBlocksMod.EXAMPLE_TAB)));
+
+    // PACKETS
+    public static final ResourceLocation SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET = new ResourceLocation(MOD_ID, "serverbound-block-chunk-request-packet");
+
     
     public static void init() {
         TABS.register();
@@ -84,6 +92,12 @@ public class TinyBlocksMod {
         RenderTypeRegistry.register(RenderType.translucent(), TINY_BLOCK.get());
 
 
+        // PACKETS! Maybe move them somewhere else.
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET, ((buf, context) -> {
+            BlockPos tinyBlockPos = BlockPos.of(buf.getLong(0));
+            ServerStorageChunkManager.requestStorageChunk(context.getPlayer(), tinyBlockPos);
+        }));
+        //TODO thing that tells client to stop loading the chunk as they are too far away from the tiny block
 
 
         System.out.println(ExampleExpectPlatform.getConfigDirectory().toAbsolutePath().normalize().toString());

@@ -2,6 +2,10 @@ package buwwet.tinyblocksmod.blocks;
 
 import buwwet.tinyblocksmod.TinyBlocksMod;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
+import buwwet.tinyblocksmod.world.ClientStorageChunkManager;
+import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
@@ -11,12 +15,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -28,6 +35,8 @@ import org.joml.Vector3d;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TinyBlock extends Block implements EntityBlock {
+
+    //TODO loaded players
 
     public TinyBlock(Properties properties) {
 
@@ -52,6 +61,8 @@ public class TinyBlock extends Block implements EntityBlock {
             return super.getShape(blockState, blockGetter, blockPos, collisionContext);
         }
         if (!tinyBlockEntity.getLevel().isLoaded(tinyBlockEntity.getBlockStoragePosition())) {
+
+
             return  super.getShape(blockState, blockGetter, blockPos, collisionContext);
         }
 
@@ -59,11 +70,12 @@ public class TinyBlock extends Block implements EntityBlock {
         BlockPos initialBlockPos = tinyBlockEntity.getBlockStoragePosition();
         AtomicReference<VoxelShape> finalVoxel = new AtomicReference<>(Shapes.box(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
+        // Add all the shapes to ourselves
         for (int z_offset = 0; z_offset < 4; z_offset++) {
             for (int y_offset = 0; y_offset < 4; y_offset++) {
                 for (int x_offset = 0; x_offset < 4; x_offset++) {
                     BlockPos storageBlockPos = initialBlockPos.offset(x_offset, y_offset, z_offset);
-                    VoxelShape shape = level.getBlockState(storageBlockPos).getShape(blockGetter, storageBlockPos);
+                    VoxelShape shape = level.getBlockState(storageBlockPos).getCollisionShape(blockGetter, storageBlockPos);
 
                     final Vector3d offset = new Vector3d(x_offset / 4.0f, y_offset / 4.0f, z_offset / 4.0);
                     // Create a scaled down box for each
@@ -102,14 +114,28 @@ public class TinyBlock extends Block implements EntityBlock {
         return TinyBlocksMod.TINY_BLOCK_ENTITY.get().create(blockPos, blockState);
     }
 
+    @Nullable
     private TinyBlockEntity getBlockEntity(BlockGetter blockGetter, BlockPos blockPos) {
-        TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) blockGetter.getBlockEntity(blockPos);
-        return tinyBlockEntity;
+        if (blockGetter.getBlockEntity(blockPos) instanceof TinyBlockEntity) {
+            TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) blockGetter.getBlockEntity(blockPos);
+            return tinyBlockEntity;
+        } else {
+            return null;
+        }
     }
 
 
     @Override
     public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
+
+
+
+        // Don't run if we are not a TinyBlockEntity
+        if (level.getBlockEntity(blockPos) instanceof TinyBlockEntity) {
+        } else {
+            return InteractionResult.CONSUME;
+        }
+
         TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) level.getBlockEntity(blockPos);
         tinyBlockEntity.incrementCounter();
 
@@ -118,28 +144,49 @@ public class TinyBlock extends Block implements EntityBlock {
             ServerLevel serverLevel = (ServerLevel) level;
             ServerPlayer serverPlayer = (ServerPlayer) player;
 
+
             var chunkPos = new ChunkPos(tinyBlockEntity.getBlockStoragePosition());
-            serverLevel.setChunkForced(chunkPos.x, chunkPos.z, true);
+            //serverLevel.setChunkForced(chunkPos.x, chunkPos.z, true);
 
-            //server.getConnection().getConnections()
-            //serverPlayer.connection.disconnect(Component.literal("byebye"));
 
-            //TODO: run this only when on initial load, send the block update packet when yeah.
-            // okay we are sending it
-            serverPlayer.connection.send(
-                    new ClientboundLevelChunkWithLightPacket(
-                            serverLevel.getChunkAt(tinyBlockEntity.getBlockStoragePosition()),
-                            serverLevel.getLightEngine(),
-                            null, null
-                    )
+
+            //TODO: we have to create a start that starts from the edge of the 4x4 column to one that goes to the bottom.
+            // If we comepletely miss, but there is a block below, above, or whatever, add it anyways.
+            //BlockHitResult epic = level.clip(new ClipContext(
+
+            //));
+
+            /*
+
+            BlockHitResult newBlockHitResult = new BlockHitResult(
+                    tinyBlockEntity.getBlockStoragePosition().getCenter(),
+                    player.getDirection(),
+                    tinyBlockEntity.getBlockStoragePosition(),
+                    false
             );
 
-            TinyBlocksMod.LOGGER.info("AAAAAAAAAAA " + serverLevel.isLoaded(tinyBlockEntity.getBlockStoragePosition()));
+            serverPlayer.getMainHandItem().useOn(
+                    new UseOnContext(
+                            serverPlayer,
+                            interactionHand,
+                            newBlockHitResult
+                    )
+            );*/
 
+            //serverPlayer.
+
+
+        } else {
 
         }
 
-        return super.use(blockState, level, blockPos, player, interactionHand, blockHitResult);
+
+
+
+
+
+
+        return InteractionResult.CONSUME;
     }
 
     // We don't want to render the block, just the tile entity.
