@@ -37,7 +37,7 @@ public class ServerStorageChunkManager {
 
 
     public static void addBlockListenerToChunk(TinyBlockEntity tinyBlockEntity) {
-        ChunkPos chunkPos = new ChunkPos(tinyBlockEntity.getBlockPos());
+        ChunkPos chunkPos = new ChunkPos(tinyBlockEntity.getBlockStoragePosition());
 
         // Create a new entry in the hashmap as this chunkpos hasn't been used yet.
         if (!loadedChunksByBlocks.containsKey(chunkPos)) {
@@ -58,6 +58,7 @@ public class ServerStorageChunkManager {
         if (loadedChunksByBlocks.containsKey(chunkPos)) {
             for (BlockPos blockPos : loadedChunksByBlocks.get(chunkPos)) {
                 BlockEntity entity = level.getBlockEntity(blockPos);
+
                 // Mark them as dirty
                 if (entity instanceof  TinyBlockEntity) {
                     ((TinyBlockEntity) entity).isShapeDirty = true;
