@@ -3,6 +3,7 @@ package buwwet.tinyblocksmod;
 import buwwet.tinyblocksmod.blocks.TinyBlock;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import buwwet.tinyblocksmod.blocks.entities.render.TinyBlockEntityRenderer;
+import buwwet.tinyblocksmod.world.ClientStorageChunkManager;
 import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
 import com.google.common.base.Suppliers;
 import dev.architectury.networking.NetworkManager;
@@ -76,9 +77,11 @@ public class TinyBlocksMod {
     public static final RegistrySupplier<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () ->
             new Item(new Item.Properties().arch$tab(TinyBlocksMod.EXAMPLE_TAB)));
 
-    // PACKETS
+    // PACKETS C2S
     public static final ResourceLocation SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET = new ResourceLocation(MOD_ID, "serverbound-block-chunk-request-packet");
 
+    // PACKETS S2C
+    public static final ResourceLocation CLIENTBOUND_DIRTY_CHUNK_UPDATE_PACKET = new ResourceLocation(MOD_ID, "clientbound-dirty-chunk-update-packet");
     
     public static void init() {
         TABS.register();
@@ -97,6 +100,12 @@ public class TinyBlocksMod {
             BlockPos tinyBlockPos = BlockPos.of(buf.getLong(0));
             ServerStorageChunkManager.requestStorageChunk(context.getPlayer(), tinyBlockPos);
         }));
+
+        // SERVER TO CLIENT PACKETS
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, CLIENTBOUND_DIRTY_CHUNK_UPDATE_PACKET, ((buf, context) -> {
+            ClientStorageChunkManager.handleClientBoundDirtyChunkPacket(buf, context);
+        }));
+
         //TODO thing that tells client to stop loading the chunk as they are too far away from the tiny block
 
 

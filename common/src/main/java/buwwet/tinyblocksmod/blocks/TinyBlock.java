@@ -38,6 +38,7 @@ public class TinyBlock extends Block implements EntityBlock {
 
     //TODO loaded players
 
+
     public TinyBlock(Properties properties) {
 
         super(properties);
@@ -53,47 +54,12 @@ public class TinyBlock extends Block implements EntityBlock {
     @Override
     public VoxelShape getShape(BlockState blockState, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collisionContext) {
 
-
         TinyBlockEntity tinyBlockEntity = getBlockEntity(blockGetter, blockPos);
-
-        // Don't run if not loaded
-        if (tinyBlockEntity == null) {
-            return super.getShape(blockState, blockGetter, blockPos, collisionContext);
-        }
-        if (!tinyBlockEntity.getLevel().isLoaded(tinyBlockEntity.getBlockStoragePosition())) {
-
-
-            return  super.getShape(blockState, blockGetter, blockPos, collisionContext);
+        if (tinyBlockEntity != null) {
+            return tinyBlockEntity.getShape();
         }
 
-        Level level = tinyBlockEntity.getLevel();
-        BlockPos initialBlockPos = tinyBlockEntity.getBlockStoragePosition();
-        AtomicReference<VoxelShape> finalVoxel = new AtomicReference<>(Shapes.box(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
-
-        // Add all the shapes to ourselves
-        for (int z_offset = 0; z_offset < 4; z_offset++) {
-            for (int y_offset = 0; y_offset < 4; y_offset++) {
-                for (int x_offset = 0; x_offset < 4; x_offset++) {
-                    BlockPos storageBlockPos = initialBlockPos.offset(x_offset, y_offset, z_offset);
-                    VoxelShape shape = level.getBlockState(storageBlockPos).getCollisionShape(blockGetter, storageBlockPos);
-
-                    final Vector3d offset = new Vector3d(x_offset / 4.0f, y_offset / 4.0f, z_offset / 4.0);
-                    // Create a scaled down box for each
-                    shape.forAllBoxes((d, e, f, g, h, i) -> {
-                        VoxelShape shrinkedShape = Shapes.box(d / 4, e / 4, f / 4, g / 4, h / 4, i / 4);
-                        shrinkedShape = shrinkedShape.move(offset.x, offset.y, offset.z);
-
-                        finalVoxel.set(Shapes.or(shrinkedShape, finalVoxel.get()));
-                    });
-                }
-            }
-        }
-
-        return finalVoxel.get();
-
-
-        //return Shapes.box(0.0, 0.0, 0.0, 1.0, 0.01, 1.0);
-        //return super.getCollisionShape(blockState, blockGetter, blockPos, collisionContext);
+        return super.getShape(blockState, blockGetter, blockPos, collisionContext);
     }
 
     @Override
