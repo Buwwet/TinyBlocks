@@ -28,7 +28,7 @@ public class ClientStorageChunkManager {
     // Actually stores the chunk data.
     public static ClientExtraChunkStorage storage = new ClientExtraChunkStorage();
 
-    // Request the given storage chunk if it appears that we don't have it.
+    /** Request the given storage chunk if it appears that we don't have it. */
     public static void requestStorageChunk(TinyBlockEntity tinyBlockEntity) {
         ChunkPos chunkPos = new ChunkPos(tinyBlockEntity.getBlockStoragePosition());
 
@@ -53,11 +53,35 @@ public class ClientStorageChunkManager {
 
     }
 
-    public static void removeStorageChunkListener(BlockPos tinyBlockPos, BlockPos storageBlockPos) {
-        //TODO
+    /** Remove a block from our listeners, and if a chunk loses all listeners, unload it. */
+    public static void removeStorageChunkListener(BlockPos tinyBlockPos) {
+
+        ChunkPos storageChunkPos = new ChunkPos(LevelBlockStorageUtil.getBlockStoragePosition(tinyBlockPos));
+
+        // Remove it from our list.
+        if (loadedChunks.containsKey(storageChunkPos)) {
+            // Check that we aren't the only block observing the chunk.
+
+            List<BlockPos> record = loadedChunks.get(storageChunkPos);
+            if (record.size() > 1) {
+                // There are more blocks using this chunk, so we just remove ourselves and return.
+                record.remove(tinyBlockPos);
+                return;
+            }
+
+            // There is only one block remaining, (us), so we do the chunk unloading.
+            //record = null;
+
+            // Remove this chunk from our list and unload it.
+            loadedChunks.remove(storageChunkPos);
+            storage.unloadChunk(storageChunkPos);
+        }
+
+
+        //if (storage)
     }
 
-    /** The server just told us that there has been an update with the chunk and that our shape is dirty. */
+    /** The server just told us that there has been an update within the chunk and that our shape is dirty. */
     public static void handleClientBoundDirtyChunkPacket(FriendlyByteBuf buf, NetworkManager.PacketContext context) {
         ChunkPos chunkPos = buf.readChunkPos();
 
@@ -77,5 +101,14 @@ public class ClientStorageChunkManager {
             }
         }
 
+    }
+
+
+    /** We have to reset everything as we are joining to a new world, or traveling to a new level */
+    public static void clearCache() {
+        // TODO: I don't know how memory leaks work in java, but this is definitely one of them.
+
+        storage = new ClientExtraChunkStorage();
+        loadedChunks = new HashMap<>();
     }
 }

@@ -6,6 +6,7 @@ import buwwet.tinyblocksmod.blocks.entities.render.TinyBlockEntityRenderer;
 import buwwet.tinyblocksmod.world.ClientStorageChunkManager;
 import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
 import com.google.common.base.Suppliers;
+import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
@@ -107,6 +108,14 @@ public class TinyBlocksMod {
         }));
 
         //TODO thing that tells client to stop loading the chunk as they are too far away from the tiny block
+
+        // EVENTS! Also maybe move them somewhere else.
+
+        ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
+            // Clear our custom caches.
+            ClientStorageChunkManager.clearCache();
+        });
+
 
 
         System.out.println(ExampleExpectPlatform.getConfigDirectory().toAbsolutePath().normalize().toString());
