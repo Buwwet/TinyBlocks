@@ -1,8 +1,11 @@
 package buwwet.tinyblocksmod.world;
 
 import buwwet.tinyblocksmod.TinyBlocksMod;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.BlockHitResult;
 
 public class LevelBlockStorageUtil {
 
@@ -35,7 +38,7 @@ public class LevelBlockStorageUtil {
         }
     }
 
-    // Calculate the root of this tiny block's storage (4x4x4)
+    /** Calculate the root of this tiny block's storage (4x4x4) */
     public static BlockPos getBlockStoragePosition(BlockPos blockPos) {
 
 
@@ -58,6 +61,36 @@ public class LevelBlockStorageUtil {
 
         return new BlockPos(tinyBlockPosition);
 
+    }
 
+    /** Get a specific block's storage position that is within a tiny block */
+    public static BlockPos getBlockStorageOfInnerBlock(BlockHitResult blockHitResult) {
+
+        // Root block storage pos
+        BlockPos rootBlockPos = getBlockStoragePosition(blockHitResult.getBlockPos());
+
+        double x_offset = ((blockHitResult.getLocation().x - Math.floor(blockHitResult.getLocation().x)) * 4);
+        double y_offset = ((blockHitResult.getLocation().y - Math.floor(blockHitResult.getLocation().y)) * 4);
+        double z_offset = ((blockHitResult.getLocation().z - Math.floor(blockHitResult.getLocation().z)) * 4);
+
+        // If we face the limit of the block, it returns as a whole number, which makes our check not work.
+        // TODO This is a band-aid fix, something smarter should be used instead!
+        if (blockHitResult.getLocation().x == (double) blockHitResult.getBlockPos().getX() + 1.0) {
+            x_offset = 3.0;
+        }
+        if (blockHitResult.getLocation().y == (double) blockHitResult.getBlockPos().getY() + 1.0) {
+            y_offset = 3.0;
+        }
+        if (blockHitResult.getLocation().z == (double) blockHitResult.getBlockPos().getZ() + 1.0) {
+            z_offset = 3.0;
+        }
+
+
+        if (Minecraft.getInstance().player != null) {
+            Minecraft.getInstance().gui.setOverlayMessage(Component.literal("x: " + x_offset + " y: " + y_offset + " z: " + z_offset), false);
+            Minecraft.getInstance().player.displayClientMessage(Component.literal("" + blockHitResult.getLocation().x), false);
+        }
+
+        return rootBlockPos.offset((int) x_offset, (int) y_offset, (int) z_offset);
     }
 }

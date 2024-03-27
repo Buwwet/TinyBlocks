@@ -3,11 +3,14 @@ package buwwet.tinyblocksmod.blocks;
 import buwwet.tinyblocksmod.TinyBlocksMod;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import buwwet.tinyblocksmod.world.ClientStorageChunkManager;
+import buwwet.tinyblocksmod.world.LevelBlockStorageUtil;
 import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
+import com.mojang.authlib.minecraft.client.MinecraftClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -21,6 +24,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -92,9 +96,11 @@ public class TinyBlock extends Block implements EntityBlock {
 
 
     @Override
+    /** Runs when the player wants to INTERACT with a tiny block, not place it. */
     public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
 
 
+        // Let's get the tiny block position using the block hit result
 
         // Don't run if we are not a TinyBlockEntity
         if (level.getBlockEntity(blockPos) instanceof TinyBlockEntity) {
@@ -103,24 +109,21 @@ public class TinyBlock extends Block implements EntityBlock {
         }
 
         TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) level.getBlockEntity(blockPos);
-        tinyBlockEntity.incrementCounter();
+
+
+
+        BlockPos resultingBlockPos = LevelBlockStorageUtil.getBlockStorageOfInnerBlock(blockHitResult);
+        BlockState block = level.getBlockState(resultingBlockPos);
+
+        if (level.getServer() == null) {
+            //Minecraft.getInstance().player.displayClientMessage(Component.literal(block.getBlock().getName().toString()), false);
+        }
+
 
         if (level.getServer() != null) {
-            MinecraftServer server = level.getServer();
-            ServerLevel serverLevel = (ServerLevel) level;
-            ServerPlayer serverPlayer = (ServerPlayer) player;
 
+            level.setBlockAndUpdate(resultingBlockPos, Blocks.DIAMOND_BLOCK.defaultBlockState());
 
-            var chunkPos = new ChunkPos(tinyBlockEntity.getBlockStoragePosition());
-            //serverLevel.setChunkForced(chunkPos.x, chunkPos.z, true);
-
-
-
-            //TODO: we have to create a start that starts from the edge of the 4x4 column to one that goes to the bottom.
-            // If we comepletely miss, but there is a block below, above, or whatever, add it anyways.
-            //BlockHitResult epic = level.clip(new ClipContext(
-
-            //));
 
             /*
 
