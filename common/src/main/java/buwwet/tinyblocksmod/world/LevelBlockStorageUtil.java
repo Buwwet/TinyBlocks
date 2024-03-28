@@ -6,6 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
 public class LevelBlockStorageUtil {
 
@@ -66,31 +68,45 @@ public class LevelBlockStorageUtil {
     /** Get a specific block's storage position that is within a tiny block */
     public static BlockPos getBlockStorageOfInnerBlock(BlockHitResult blockHitResult) {
 
-        // Root block storage pos
-        BlockPos rootBlockPos = getBlockStoragePosition(blockHitResult.getBlockPos());
+        // Tiny block position
+        BlockPos tinyBlockPos = blockHitResult.getBlockPos();
 
-        double x_offset = ((blockHitResult.getLocation().x - Math.floor(blockHitResult.getLocation().x)) * 4);
-        double y_offset = ((blockHitResult.getLocation().y - Math.floor(blockHitResult.getLocation().y)) * 4);
-        double z_offset = ((blockHitResult.getLocation().z - Math.floor(blockHitResult.getLocation().z)) * 4);
+        // Take a step towards where we are facing (the direction is opposite to where we are facing).
+        Vector3f step = blockHitResult.getDirection().step().div(-8.0f);
+        Vector3f blockHitResultStepped = blockHitResult.getLocation().toVector3f().add(step);
+
+        return getStoragePosOfBlockInside(tinyBlockPos, blockHitResultStepped);
+    }
+
+    /** Gets the storage position of the block inside a tiny block. Does not do any step, it will give you the middle of two blocks if you don't process the Vector3f beforehand. */
+    private static BlockPos getStoragePosOfBlockInside(BlockPos tinyBlockPos, Vector3f hitPosition) {
+
+        // Root block storage pos
+        BlockPos rootStorageBlockPos = getBlockStoragePosition(tinyBlockPos);
+
+        // Get the offsets (0-3)
+        float x_offset = ((hitPosition.x - tinyBlockPos.getX()) * 4);
+        float y_offset = ((hitPosition.y - tinyBlockPos.getY()) * 4);
+        float z_offset = ((hitPosition.z - tinyBlockPos.getZ()) * 4);
 
         // If we face the limit of the block, it returns as a whole number, which makes our check not work.
         // TODO This is a band-aid fix, something smarter should be used instead!
-        if (blockHitResult.getLocation().x == (double) blockHitResult.getBlockPos().getX() + 1.0) {
-            x_offset = 3.0;
+        if (hitPosition.x == (double) tinyBlockPos.getX() + 1.0) {
+            x_offset = 3.0f;
         }
-        if (blockHitResult.getLocation().y == (double) blockHitResult.getBlockPos().getY() + 1.0) {
-            y_offset = 3.0;
+        if (hitPosition.y == (double) tinyBlockPos.getY() + 1.0) {
+            y_offset = 3.0f;
         }
-        if (blockHitResult.getLocation().z == (double) blockHitResult.getBlockPos().getZ() + 1.0) {
-            z_offset = 3.0;
+        if (hitPosition.z == (double) tinyBlockPos.getZ() + 1.0) {
+            z_offset = 3.0f;
         }
 
 
         if (Minecraft.getInstance().player != null) {
             Minecraft.getInstance().gui.setOverlayMessage(Component.literal("x: " + x_offset + " y: " + y_offset + " z: " + z_offset), false);
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("" + blockHitResult.getLocation().x), false);
+            //Minecraft.getInstance().player.displayClientMessage(Component.literal("" + blockHitResult.getLocation().x), false);
         }
 
-        return rootBlockPos.offset((int) x_offset, (int) y_offset, (int) z_offset);
+        return rootStorageBlockPos.offset((int) x_offset, (int) y_offset, (int) z_offset);
     }
 }
