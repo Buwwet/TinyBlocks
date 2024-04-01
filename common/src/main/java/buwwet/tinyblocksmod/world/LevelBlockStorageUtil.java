@@ -79,7 +79,7 @@ public class LevelBlockStorageUtil {
     }
 
     /** Gets the storage position of the block inside a tiny block. Does not do any step, it will give you the middle of two blocks if you don't process the Vector3f beforehand. */
-    private static BlockPos getStoragePosOfBlockInside(BlockPos tinyBlockPos, Vector3f hitPosition) {
+    public static BlockPos getStoragePosOfBlockInside(BlockPos tinyBlockPos, Vector3f hitPosition) {
 
         // Root block storage pos
         BlockPos rootStorageBlockPos = getBlockStoragePosition(tinyBlockPos);

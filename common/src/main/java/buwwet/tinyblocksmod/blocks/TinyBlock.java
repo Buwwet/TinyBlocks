@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
@@ -30,19 +31,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Math;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TinyBlock extends Block implements EntityBlock {
-
-    //TODO loaded players
-
-
     public TinyBlock(Properties properties) {
 
         super(properties);
@@ -101,6 +101,12 @@ public class TinyBlock extends Block implements EntityBlock {
 
 
     @Override
+    public void onPlace(BlockState blockState, Level level, BlockPos blockPos, BlockState blockState2, boolean bl) {
+
+
+    }
+
+    @Override
     /** Runs when the player wants to INTERACT with a tiny block, not place it. */
     public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
 
@@ -128,25 +134,67 @@ public class TinyBlock extends Block implements EntityBlock {
                 false
         );
 
-        block.use(level, player, interactionHand, newBlockHitResult);
+        // Get the result from interacting with this block.
+        InteractionResult interactionResult = block.use(level, player, interactionHand, newBlockHitResult);
 
-        if (level.getServer() == null) {
-            //Minecraft.getInstance().player.displayClientMessage(Component.literal(block.getBlock().getName().toString()), false);
+        // Our interaction wasn't consumed!
+        if (interactionResult == InteractionResult.PASS) {
+
+            // TODO: some tools have special interactions with some blocks (ex, axe with copper, so we need to add that check).
+            if (player.getMainHandItem().getItem() instanceof BlockItem) {
+                // Do some magic to get the inner block position of where we are looking at + our direction.
+                // Then when we get the storage position of THAT subtract the direction so that we target the block that is required to then
+                // place the block where we really want.
+
+                Vector3f directionStep = blockHitResult.getDirection().step().div(4.2f);
+
+                Vector3f placeBlockInnerPos = blockHitResult.getLocation().toVector3f()
+                        .add(directionStep);
+
+                // Get the tiny block position of the target.
+                int tinyBlockX = (int) Math.floor(placeBlockInnerPos.x);
+                int tinyBlockY = (int) Math.floor(placeBlockInnerPos.y);
+                int tinyBlockZ = (int) Math.floor(placeBlockInnerPos.z);
+
+                BlockPos targetTinyBlockPos = new BlockPos(tinyBlockX, tinyBlockY, tinyBlockZ);
+
+                BlockPos targetedBlockPos = LevelBlockStorageUtil.getStoragePosOfBlockInside(targetTinyBlockPos, placeBlockInnerPos);
+
+                BlockHitResult placeBlockHitResult = new BlockHitResult(
+                        new Vec3(placeBlockInnerPos.sub(directionStep)),
+                        blockHitResult.getDirection(),
+                        targetedBlockPos,
+                        false
+                );
+
+                // Check if the targetTinyBlock actually exists.
+                BlockEntity blockEntity = level.getBlockEntity(targetTinyBlockPos);
+                if (blockEntity instanceof TinyBlockEntity) {
+                    TinyBlockEntity targetBlockEntity = (TinyBlockEntity) blockEntity;
+
+                    InteractionResult itemUse = player.getMainHandItem().useOn(
+                            new UseOnContext(
+                                    player, interactionHand, placeBlockHitResult
+                            )
+                    );
+                    // Success! Make the targeted one dirty
+                    if (itemUse == InteractionResult.SUCCESS) {
+                        targetBlockEntity.isShapeDirty = true;
+                    }
+                }
+
+
+
+
+
+
+
+            }
+
+
+
+
         }
-
-        //level.setBlockAndUpdate(resultingBlockPos, Blocks.DIAMOND_BLOCK.defaultBlockState());
-
-
-
-        if (level.getServer() != null) {
-
-
-        } else {
-
-        }
-
-
-
 
 
 
