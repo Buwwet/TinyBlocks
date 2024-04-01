@@ -34,7 +34,7 @@ public class ServerChunkMapMixin {
         // Add players if this is a special storage chunk.
         if (ServerStorageChunkManager.loadedChunksByPlayers.containsKey(chunkPos)) {
 
-            // TODO: I don't know if this is the best place for this, but if a packet happened, that means that something changed, right?
+            // TODO: Move this to the place that handles block updates.
             ServerStorageChunkManager.markBlockListenersAsDirty(level, chunkPos);
 
             // Extend the list to our player list.

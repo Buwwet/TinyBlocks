@@ -67,11 +67,13 @@ public class ServerStorageChunkManager {
         }
         // Send a singular packet to the players that are currently watching this chunk to update their block records.
         // It's just a simple chunk position.
+
+        /* Depreciate this packet, make the client figure it out.
         if (loadedChunksByPlayers.containsKey(chunkPos)) {
             FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
             buf.writeChunkPos(chunkPos);
             NetworkManager.sendToPlayers(loadedChunksByPlayers.get(chunkPos), TinyBlocksMod.CLIENTBOUND_DIRTY_CHUNK_UPDATE_PACKET, buf);
-        }
+        }*/
     }
 
     /** Handle the request storage chunk Packet from the player */

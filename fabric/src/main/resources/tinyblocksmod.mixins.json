@@ -9,7 +9,8 @@
   ],
   "client": [
     "ClientChunkCacheStorageMixin",
-    "ClientChunkCacheMixin"
+    "ClientChunkCacheMixin",
+    "ClientPacketListenerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

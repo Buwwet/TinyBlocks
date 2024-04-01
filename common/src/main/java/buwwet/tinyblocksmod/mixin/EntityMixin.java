@@ -24,7 +24,7 @@ public abstract class EntityMixin {
         ChunkPos chunkPos = level.getChunkAt(blockPos).getPos();
 
         if (ServerStorageChunkManager.loadedChunksByBlocks.containsKey(chunkPos)) {
-            TinyBlocksMod.LOGGER.info("" + chunkPos);
+            //TinyBlocksMod.LOGGER.info("" + chunkPos);
 
             cir.setReturnValue(2.0);
         }

@@ -90,7 +90,6 @@ public class LevelBlockStorageUtil {
         float z_offset = ((hitPosition.z - tinyBlockPos.getZ()) * 4);
 
         // If we face the limit of the block, it returns as a whole number, which makes our check not work.
-        // TODO This is a failsafe baindaid that is no longer in use. TEST FURTHER before removing completely.
         if (hitPosition.x == (double) tinyBlockPos.getX() + 1.0) {
             x_offset = 3.0f;
         }
@@ -109,4 +108,22 @@ public class LevelBlockStorageUtil {
 
         return rootStorageBlockPos.offset((int) x_offset, (int) y_offset, (int) z_offset);
     }
+
+
+    public static BlockPos getTinyBlockPositionFromStorageBlock(BlockPos sBlock) {
+
+        // Get the start of the quadrant the block is in.
+        int quadrant_x = sinageInt(sBlock.getX()) * WORLD_STORAGE_START;
+        int quadrant_z = sinageInt(sBlock.getZ()) * WORLD_STORAGE_START;
+
+        //int tinyBlock_x = (sBlock.getX() - quadrant_x - column_offset.getX()) / 8;
+        //int tinyBlock_z = (sBlock.getZ() - quadrant_z - column_offset.getZ()) / 8;
+
+        // If we ever hope to find y, we need to check the column offset.
+        // But currently, I don't know how
+
+        //TODO
+
+        return null;
+   }
 }
