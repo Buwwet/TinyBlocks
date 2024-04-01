@@ -31,7 +31,6 @@ public class TinyBlockEntity extends BlockEntity {
 
     /** Indicates where in the world this block stores its 4x4x4 blocks. */
     BlockPos blockStoragePosition;
-    int state = 2;
 
     /** Shape to be used for rendering */
     private VoxelShape shape;
@@ -59,20 +58,11 @@ public class TinyBlockEntity extends BlockEntity {
 
     @Override
     public void load(CompoundTag nbt) {
-
-        state = nbt.getInt("initial");
-
-
     }
-
-
-
 
     @Override
     // Save our NBT to the world
     protected void saveAdditional(CompoundTag nbt) {
-        // Add the current counter
-        nbt.putInt("initial", state);
         super.saveAdditional(nbt);
     }
 
@@ -94,21 +84,6 @@ public class TinyBlockEntity extends BlockEntity {
     // Send data when we request to sync
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-
-    public void incrementCounter() {
-        state += 1;
-
-        // Update client!
-        this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_ALL);
-        // Mark ourselves as dirty, so that the server saves us!
-        this.setChanged();
-
-    }
-
-    public int getCounter() {
-        return state;
     }
 
     public BlockPos getBlockStoragePosition() {return blockStoragePosition; }
@@ -133,7 +108,7 @@ public class TinyBlockEntity extends BlockEntity {
             recalculateCollisionShape();
             isShapeDirty = false;
         }
-        return shape;
+        return collisionShape;
     }
 
 
@@ -149,12 +124,9 @@ public class TinyBlockEntity extends BlockEntity {
             for (int y_offset = 0; y_offset < 4; y_offset++) {
                 for (int x_offset = 0; x_offset < 4; x_offset++) {
                     BlockPos storageBlockPos = initialBlockPos.offset(x_offset, y_offset, z_offset);
-                    //TODO: special block blacklist (for ladders and such)
 
                     BlockState blockState = level.getBlockState(storageBlockPos);
                     VoxelShape shape = blockState.getShape(this.level, storageBlockPos);
-
-
 
                     final Vector3d offset = new Vector3d(x_offset / 4.0f, y_offset / 4.0f, z_offset / 4.0);
                     // Create a scaled down box for each
@@ -185,6 +157,7 @@ public class TinyBlockEntity extends BlockEntity {
                     BlockPos storageBlockPos = initialBlockPos.offset(x_offset, y_offset, z_offset);
 
                     BlockState blockState = level.getBlockState(storageBlockPos);
+
                     // Get the collision shape this time
                     VoxelShape shape = blockState.getCollisionShape(this.level, storageBlockPos);
 
