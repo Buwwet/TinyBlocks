@@ -33,8 +33,11 @@ public class TinyBlockEntity extends BlockEntity {
     BlockPos blockStoragePosition;
     int state = 2;
 
-    /** Shape to be used for collision */
+    /** Shape to be used for rendering */
     private VoxelShape shape;
+
+    /** Shape to be used for collision */
+    private VoxelShape collisionShape;
     /** Determines if we have to recalculate our shape due to a block update. */
     public boolean isShapeDirty;
 
@@ -116,13 +119,26 @@ public class TinyBlockEntity extends BlockEntity {
 
         if (isShapeDirty) {
             recalculateShape();
+            recalculateCollisionShape();
             isShapeDirty = false;
         }
 
         return shape;
     }
 
-    /** Recalculates the shape used for collisions. */
+    /** Gets the collsion shape of the block, recalculates if shape is marked as dirty. */
+    public VoxelShape getCollisionShape() {
+        if (isShapeDirty) {
+            recalculateShape();
+            recalculateCollisionShape();
+            isShapeDirty = false;
+        }
+        return shape;
+    }
+
+
+
+    /** Recalculates the shape used for block selection. */
     private void recalculateShape() {
         Level level = this.getLevel();
         BlockPos initialBlockPos = this.blockStoragePosition;
@@ -134,8 +150,9 @@ public class TinyBlockEntity extends BlockEntity {
                 for (int x_offset = 0; x_offset < 4; x_offset++) {
                     BlockPos storageBlockPos = initialBlockPos.offset(x_offset, y_offset, z_offset);
                     //TODO: special block blacklist (for ladders and such)
+
                     BlockState blockState = level.getBlockState(storageBlockPos);
-                    VoxelShape shape = blockState.getCollisionShape(this.level, storageBlockPos);
+                    VoxelShape shape = blockState.getShape(this.level, storageBlockPos);
 
 
 
@@ -153,6 +170,38 @@ public class TinyBlockEntity extends BlockEntity {
 
         // Save the shape.
         shape = finalVoxel.get();
+    }
+
+    /** Recalculates the shape used for collisions. */
+    private void recalculateCollisionShape() {
+        Level level = this.getLevel();
+        BlockPos initialBlockPos = this.blockStoragePosition;
+        AtomicReference<VoxelShape> finalVoxel = new AtomicReference<>(Shapes.box(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+
+        // Add all the shapes to ourselves
+        for (int z_offset = 0; z_offset < 4; z_offset++) {
+            for (int y_offset = 0; y_offset < 4; y_offset++) {
+                for (int x_offset = 0; x_offset < 4; x_offset++) {
+                    BlockPos storageBlockPos = initialBlockPos.offset(x_offset, y_offset, z_offset);
+
+                    BlockState blockState = level.getBlockState(storageBlockPos);
+                    // Get the collision shape this time
+                    VoxelShape shape = blockState.getCollisionShape(this.level, storageBlockPos);
+
+                    final Vector3d offset = new Vector3d(x_offset / 4.0f, y_offset / 4.0f, z_offset / 4.0);
+                    // Create a scaled down box for each
+                    shape.forAllBoxes((d, e, f, g, h, i) -> {
+                        VoxelShape shrinkedShape = Shapes.box(d / 4, e / 4, f / 4, g / 4, h / 4, i / 4);
+                        shrinkedShape = shrinkedShape.move(offset.x, offset.y, offset.z);
+
+                        finalVoxel.set(Shapes.or(shrinkedShape, finalVoxel.get()));
+                    });
+                }
+            }
+        }
+
+        // Save the shape.
+        collisionShape = finalVoxel.get();
     }
 
 

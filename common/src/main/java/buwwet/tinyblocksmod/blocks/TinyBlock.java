@@ -74,6 +74,11 @@ public class TinyBlock extends Block implements EntityBlock {
     @Override
     public VoxelShape getCollisionShape(BlockState blockState, BlockGetter blockGetter, BlockPos blockPos, CollisionContext collisionContext) {
 
+        TinyBlockEntity tinyBlockEntity = getBlockEntity(blockGetter, blockPos);
+        if (tinyBlockEntity != null) {
+            return tinyBlockEntity.getCollisionShape();
+        }
+
 
         return this.getShape(blockState, blockGetter, blockPos, collisionContext);
     }
@@ -115,34 +120,25 @@ public class TinyBlock extends Block implements EntityBlock {
         BlockPos resultingBlockPos = LevelBlockStorageUtil.getBlockStorageOfInnerBlock(blockHitResult);
         BlockState block = level.getBlockState(resultingBlockPos);
 
+        // Generate a new block hit result targeting this block
+        BlockHitResult newBlockHitResult = new BlockHitResult(
+                resultingBlockPos.getCenter(),
+                player.getDirection(),
+                resultingBlockPos,
+                false
+        );
+
+        block.use(level, player, interactionHand, newBlockHitResult);
+
         if (level.getServer() == null) {
             //Minecraft.getInstance().player.displayClientMessage(Component.literal(block.getBlock().getName().toString()), false);
         }
 
+        //level.setBlockAndUpdate(resultingBlockPos, Blocks.DIAMOND_BLOCK.defaultBlockState());
+
+
 
         if (level.getServer() != null) {
-
-            level.setBlockAndUpdate(resultingBlockPos, Blocks.DIAMOND_BLOCK.defaultBlockState());
-
-
-            /*
-
-            BlockHitResult newBlockHitResult = new BlockHitResult(
-                    tinyBlockEntity.getBlockStoragePosition().getCenter(),
-                    player.getDirection(),
-                    tinyBlockEntity.getBlockStoragePosition(),
-                    false
-            );
-
-            serverPlayer.getMainHandItem().useOn(
-                    new UseOnContext(
-                            serverPlayer,
-                            interactionHand,
-                            newBlockHitResult
-                    )
-            );*/
-
-            //serverPlayer.
 
 
         } else {

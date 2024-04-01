@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 @Mixin(targets = {"net.minecraft.client.multiplayer.ClientChunkCache$Storage"})
 public class ClientChunkCacheStorageMixin {
 
+    /*
     @Inject(method = "inRange", at= @At(value = "RETURN"), cancellable = true)
     public void permitExtraChunks(int i, int j, CallbackInfoReturnable<Boolean> cir) {
 
@@ -24,7 +25,7 @@ public class ClientChunkCacheStorageMixin {
 
         cir.setReturnValue(true);
 
-    }
+    }*/
 
     // Simple mixin that warns us if we weren't able to prevent a chunk from being replaced
     @Inject(method = "replace(ILnet/minecraft/world/level/chunk/LevelChunk;)V", locals = LocalCapture.CAPTURE_FAILHARD, at = @At(value = "TAIL"))

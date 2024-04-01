@@ -72,7 +72,7 @@ public class LevelBlockStorageUtil {
         BlockPos tinyBlockPos = blockHitResult.getBlockPos();
 
         // Take a step towards where we are facing (the direction is opposite to where we are facing).
-        Vector3f step = blockHitResult.getDirection().step().div(-8.0f);
+        Vector3f step = blockHitResult.getDirection().step().div(-100.0f);
         Vector3f blockHitResultStepped = blockHitResult.getLocation().toVector3f().add(step);
 
         return getStoragePosOfBlockInside(tinyBlockPos, blockHitResultStepped);
@@ -90,7 +90,7 @@ public class LevelBlockStorageUtil {
         float z_offset = ((hitPosition.z - tinyBlockPos.getZ()) * 4);
 
         // If we face the limit of the block, it returns as a whole number, which makes our check not work.
-        // TODO This is a band-aid fix, something smarter should be used instead!
+        // TODO This is a failsafe baindaid that is no longer in use. TEST FURTHER before removing completely.
         if (hitPosition.x == (double) tinyBlockPos.getX() + 1.0) {
             x_offset = 3.0f;
         }

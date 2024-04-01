@@ -70,9 +70,7 @@ public class TinyBlocksModFabric implements ModInitializer {
                         float relHitY = (float) (hitLocation.y - playerPos.y + start_pos.y);
                         float relHitZ = (float) (hitLocation.z - playerPos.z + start_pos.z);
 
-                        //TinyBlocksMod.LOGGER.info("" + hitLocation);
-
-                        Minecraft.getInstance().particleEngine.createParticle(new DustParticleOptions(new Vector3f(1.0f, 1.0f, 1.0f), 1.0f), hitLocation.x, hitLocation.y, hitLocation.z, 1.0f, 1.0f, 1.0f);
+                        //Minecraft.getInstance().particleEngine.createParticle(new DustParticleOptions(new Vector3f(1.0f, 1.0f, 1.0f), 1.0f), hitLocation.x, hitLocation.y, hitLocation.z, 1.0f, 1.0f, 1.0f);
 
 
 
