@@ -3,10 +3,14 @@ package buwwet.tinyblocksmod;
 import buwwet.tinyblocksmod.blocks.TinyBlock;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import buwwet.tinyblocksmod.blocks.entities.render.TinyBlockEntityRenderer;
+import buwwet.tinyblocksmod.client.ClientBlockBreaking;
 import buwwet.tinyblocksmod.world.ClientStorageChunkManager;
 import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
 import com.google.common.base.Suppliers;
+import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientPlayerEvent;
+import dev.architectury.event.events.client.ClientRawInputEvent;
+import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
@@ -14,24 +18,26 @@ import dev.architectury.registry.client.rendering.RenderTypeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
+import io.netty.buffer.Unpooled;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.phys.BlockHitResult;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -81,8 +87,11 @@ public class TinyBlocksMod {
     // PACKETS C2S
     public static final ResourceLocation SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET = new ResourceLocation(MOD_ID, "serverbound-block-chunk-request-packet");
 
+    /** Sends the tiny block pos and the storage block pos of the inner block that we want to break */
+    public static final ResourceLocation SERVERBOUND_BREAK_INNER_BLOCK = new ResourceLocation(MOD_ID, "serverbound-break-inner-block");
+
     // PACKETS S2C
-    public static final ResourceLocation CLIENTBOUND_DIRTY_CHUNK_UPDATE_PACKET = new ResourceLocation(MOD_ID, "clientbound-dirty-chunk-update-packet");
+    public static final ResourceLocation CLIENTBOUND_DIRTY_BLOCK_UPDATE_PACKET = new ResourceLocation(MOD_ID, "clientbound-dirty-block-update-packet");
     
     public static void init() {
         TABS.register();
@@ -102,8 +111,25 @@ public class TinyBlocksMod {
             ServerStorageChunkManager.requestStorageChunk(context.getPlayer(), tinyBlockPos);
         }));
 
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_BREAK_INNER_BLOCK, ((buf, context) -> {
+            //TODO: actually request the tiny block position in the packet and update its counter.
+            BlockPos innerBlockPos = buf.readBlockPos();
+            BlockPos tinyBlockPos = buf.readBlockPos();
+
+            context.getPlayer().level().setBlockAndUpdate(innerBlockPos, Blocks.AIR.defaultBlockState());
+
+
+            // Tell all the clients that have to chunk loaded to recalculate.
+            ChunkPos chunkPos = context.getPlayer().level().getChunkAt(innerBlockPos).getPos();
+
+            FriendlyByteBuf new_buf = new FriendlyByteBuf(Unpooled.buffer());
+            new_buf.writeChunkPos(chunkPos);
+            new_buf.writeBlockPos(tinyBlockPos);
+            //NetworkManager.sendToPlayers(ServerStorageChunkManager.loadedChunksByPlayers.get(chunkPos), CLIENTBOUND_DIRTY_BLOCK_UPDATE_PACKET, new_buf);
+        }));
+
         // SERVER TO CLIENT PACKETS
-        NetworkManager.registerReceiver(NetworkManager.Side.S2C, CLIENTBOUND_DIRTY_CHUNK_UPDATE_PACKET, ((buf, context) -> {
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, CLIENTBOUND_DIRTY_BLOCK_UPDATE_PACKET, ((buf, context) -> {
             ClientStorageChunkManager.handleClientBoundDirtyChunkPacket(buf, context);
         }));
 
@@ -115,6 +141,42 @@ public class TinyBlocksMod {
             // Clear our custom caches.
             ClientStorageChunkManager.clearCache();
         });
+
+         ClientRawInputEvent.MOUSE_CLICKED_PRE.register((minecraft, button, action, mods) -> {
+             // Action 1 means that the button has started being pressed, while action 0 means it was released
+             // Right click is button 1 while left click is button 0
+             if (minecraft.player != null) {
+                 //minecraft.player.displayClientMessage(Component.literal("button: " + button + " action: " + action),false);
+
+
+                 // Stop breaking (even if we weren't looking at a tiny block.
+                 if (button == 0 && action == 0) {
+                     ClientBlockBreaking.stopBreaking();
+                 }
+
+                 if (button == 0 && action == 1 && minecraft.screen == null) {
+
+
+                     // Check if the block we are targeting to break is a tiny block.
+                     if (Minecraft.getInstance().hitResult instanceof BlockHitResult) {
+                         BlockHitResult hitResult = (BlockHitResult) Minecraft.getInstance().hitResult;
+
+                         // We are starting to hit a tiny block!
+                         if (Minecraft.getInstance().level.getBlockEntity(hitResult.getBlockPos()) instanceof TinyBlockEntity) {
+                             ClientBlockBreaking.startBreaking();
+                             return EventResult.interrupt(true);
+                         }
+                     }
+                 }
+             }
+             return EventResult.pass();
+         });
+
+        ClientTickEvent.CLIENT_PRE.register((minecraft) -> {
+            ClientBlockBreaking.tick();
+        });
+
+
 
 
 

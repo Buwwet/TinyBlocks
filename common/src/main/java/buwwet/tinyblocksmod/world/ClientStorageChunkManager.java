@@ -84,20 +84,19 @@ public class ClientStorageChunkManager {
     /** The server just told us that there has been an update within the chunk and that our shape is dirty. */
     public static void handleClientBoundDirtyChunkPacket(FriendlyByteBuf buf, NetworkManager.PacketContext context) {
         ChunkPos chunkPos = buf.readChunkPos();
+        BlockPos tinyBlockPos = buf.readBlockPos();
 
         //TinyBlocksMod.LOGGER.info("Received dirty chunk packet! " + chunkPos);
 
 
         // Sanity check because I hate null
         if (loadedChunks.containsKey(chunkPos)) {
-            // Get the TinyBlockEntities that correspond to this storage chunk pos and mark them as dirty.
-            for (BlockPos blockPos : loadedChunks.get(chunkPos)) {
-
-                BlockEntity blockEntity = Minecraft.getInstance().level.getBlockEntity(blockPos);
+            // Get the TinyBlockEntity that corresponds to this tiny block.
+            if (loadedChunks.get(chunkPos).contains(tinyBlockPos)) {
+                BlockEntity blockEntity = Minecraft.getInstance().level.getBlockEntity(tinyBlockPos);
                 if (blockEntity instanceof TinyBlockEntity) {
                     ((TinyBlockEntity) blockEntity).isShapeDirty = true;
                 }
-
             }
         }
 
