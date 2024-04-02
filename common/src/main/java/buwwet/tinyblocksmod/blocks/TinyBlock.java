@@ -24,6 +24,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
@@ -100,10 +101,24 @@ public class TinyBlock extends Block implements EntityBlock {
     }
 
 
+    /** Clear a 4x4x4 space in storage when being created. */
     @Override
     public void onPlace(BlockState blockState, Level level, BlockPos blockPos, BlockState blockState2, boolean bl) {
+        BlockPos storageBlockPos = LevelBlockStorageUtil.getBlockStoragePosition(blockPos);
 
+        for (int z_offset = 0; z_offset < 4; z_offset++) {
+            for (int y_offset = 0; y_offset < 4; y_offset++) {
+                for (int x_offset = 0; x_offset < 4; x_offset++) {
 
+                    BlockPos offsetStorageBlockPos = storageBlockPos.offset(x_offset, y_offset, z_offset);
+                    level.setBlockAndUpdate(offsetStorageBlockPos, Blocks.AIR.defaultBlockState());
+
+                }
+            }
+        }
+
+        TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) level.getBlockEntity(blockPos);
+        tinyBlockEntity.isShapeDirty = true;
     }
 
     @Override
@@ -167,21 +182,37 @@ public class TinyBlock extends Block implements EntityBlock {
                         false
                 );
 
-                // Check if the targetTinyBlock actually exists.
-                BlockEntity blockEntity = level.getBlockEntity(targetTinyBlockPos);
-                if (blockEntity instanceof TinyBlockEntity) {
-                    TinyBlockEntity targetBlockEntity = (TinyBlockEntity) blockEntity;
+                // Check if the targeted tiny block pos is a replaceable block (like air) or an actual tiny block.
+                Block targetBlockType = level.getBlockState(targetTinyBlockPos).getBlock();
 
+                if (targetBlockType instanceof AirBlock || targetBlockType instanceof TinyBlock) {
+
+                    if (targetBlockType instanceof AirBlock) {
+                        // Replace the air block with a tiny block.
+                        level.setBlockAndUpdate(targetTinyBlockPos, TinyBlocksMod.TINY_BLOCK.get().defaultBlockState());
+                        // Do this before using the item, or the newly placed block will be cleared.
+                    }
+
+                    // Use the item
                     InteractionResult itemUse = player.getMainHandItem().useOn(
                             new UseOnContext(
                                     player, interactionHand, placeBlockHitResult
                             )
                     );
-                    // Success! Make the targeted one dirty
-                    if (itemUse == InteractionResult.SUCCESS) {
-                        targetBlockEntity.isShapeDirty = true;
+
+
+
+                    if (targetBlockType instanceof TinyBlock) {
+                        // If the targeted host of the inner block is a tiny block, mark its shape as dirty.
+                        TinyBlockEntity targetBlockEntity = (TinyBlockEntity) level.getBlockEntity(targetTinyBlockPos);
+
+                        // Success! Make the targeted one dirty
+                        if (itemUse == InteractionResult.SUCCESS) {
+                            targetBlockEntity.isShapeDirty = true;
+                        }
                     }
                 }
+
 
 
 
