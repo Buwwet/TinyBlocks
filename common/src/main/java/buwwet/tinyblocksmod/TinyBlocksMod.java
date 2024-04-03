@@ -6,6 +6,7 @@ import buwwet.tinyblocksmod.blocks.entities.render.TinyBlockEntityRenderer;
 import buwwet.tinyblocksmod.client.ClientBlockBreaking;
 import buwwet.tinyblocksmod.networking.NetworkPackets;
 import buwwet.tinyblocksmod.world.ClientStorageChunkManager;
+import buwwet.tinyblocksmod.world.LevelBlockStorageUtil;
 import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
 import com.google.common.base.Suppliers;
 import dev.architectury.event.EventResult;
@@ -40,6 +41,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -121,15 +123,45 @@ public class TinyBlocksMod {
              // Action 1 means that the button has started being pressed, while action 0 means it was released
              // Right click is button 1 while left click is button 0
              if (minecraft.player != null) {
-                 //minecraft.player.displayClientMessage(Component.literal("button: " + button + " action: " + action),false);
+                 //minecraft.player.displayClientMessage(Component.literal("button: " + button + " action: " + action + " is_valid: " + (Minecraft.getInstance().hitResult != null)),false);
 
+                 if (minecraft.screen != null) {
+                     return EventResult.pass();
+                 }
+
+                 // Placing (yay)
+                 if (button == 1 && action == 1) {
+                     if (Minecraft.getInstance().hitResult instanceof BlockHitResult) {
+                         BlockHitResult hitResult = (BlockHitResult) Minecraft.getInstance().hitResult;
+
+                         //TODO: tiny block placement mode check
+
+                         if (hitResult.getType() == HitResult.Type.BLOCK) {
+                             // Check if the targeted block in question is a tiny block
+                             if (!(minecraft.level.getBlockState(hitResult.getBlockPos()).getBlock() instanceof TinyBlock)) {
+                                 // Send the packet
+                                 FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+                                 buf.writeBlockHitResult(hitResult);
+                                 NetworkManager.sendToServer(NetworkPackets.SERVERBOUND_PLACE_INNER_BLOCK, buf);
+
+                                 // Do it ourselves, so that we remain in sync.
+                                 LevelBlockStorageUtil.placeInnerBlock(Minecraft.getInstance().player, hitResult);
+                                 return EventResult.interrupt(true);
+                             }
+
+
+                         }
+                     }
+                 }
+
+                 // Breaking
 
                  // Stop breaking (even if we weren't looking at a tiny block.
                  if (button == 0 && action == 0) {
                      ClientBlockBreaking.stopBreaking();
                  }
 
-                 if (button == 0 && action == 1 && minecraft.screen == null) {
+                 if (button == 0 && action == 1) {
 
 
                      // Check if the block we are targeting to break is a tiny block.

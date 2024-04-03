@@ -1,12 +1,20 @@
 package buwwet.tinyblocksmod.world;
 
 import buwwet.tinyblocksmod.TinyBlocksMod;
+import buwwet.tinyblocksmod.blocks.TinyBlock;
+import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.AirBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Math;
 import org.joml.Vector3f;
 
 public class LevelBlockStorageUtil {
@@ -126,4 +134,62 @@ public class LevelBlockStorageUtil {
 
         return null;
    }
+
+    // Do some magic to get the inner block position of where we are looking at + our direction.
+    // Then when we get the storage position of THAT subtract the direction so that we target the block that is required to then
+    // place the block where we really want.
+
+    public static void placeInnerBlock(Player player, BlockHitResult blockHitResult) {
+        Vector3f directionStep = blockHitResult.getDirection().step().div(4.2f);
+
+        Vector3f placeBlockInnerPos = blockHitResult.getLocation().toVector3f()
+                .add(directionStep);
+
+        // Get the tiny block position of the target.
+        int tinyBlockX = (int) Math.floor(placeBlockInnerPos.x);
+        int tinyBlockY = (int) Math.floor(placeBlockInnerPos.y);
+        int tinyBlockZ = (int) Math.floor(placeBlockInnerPos.z);
+
+        BlockPos targetTinyBlockPos = new BlockPos(tinyBlockX, tinyBlockY, tinyBlockZ);
+
+        BlockPos targetedBlockPos = LevelBlockStorageUtil.getStoragePosOfBlockInside(targetTinyBlockPos, placeBlockInnerPos);
+
+        BlockHitResult placeBlockHitResult = new BlockHitResult(
+                new Vec3(placeBlockInnerPos.sub(directionStep)),
+                blockHitResult.getDirection(),
+                targetedBlockPos,
+                false
+        );
+
+        // Check if the targeted tiny block pos is a replaceable block (like air) or an actual tiny block.
+        Block targetBlockType = player.level().getBlockState(targetTinyBlockPos).getBlock();
+
+        if (targetBlockType instanceof AirBlock || targetBlockType instanceof TinyBlock) {
+
+            if (targetBlockType instanceof AirBlock) {
+                // Replace the air block with a tiny block.
+                player.level().setBlockAndUpdate(targetTinyBlockPos, TinyBlocksMod.TINY_BLOCK.get().defaultBlockState());
+                // Do this before using the item, or the newly placed block will be cleared.
+            }
+
+            // Use the item
+            InteractionResult itemUse = player.getMainHandItem().useOn(
+                    new UseOnContext(
+                            player, player.getUsedItemHand(), placeBlockHitResult
+                    )
+            );
+
+
+
+            //if (targetBlockType instanceof TinyBlock) {
+            // If the targeted host of the inner block is a tiny block, mark its shape as dirty.
+            TinyBlockEntity targetBlockEntity = (TinyBlockEntity) player.level().getBlockEntity(targetTinyBlockPos);
+
+            // Success! Make the targeted one dirty
+            if (itemUse == InteractionResult.SUCCESS && targetBlockEntity != null) {
+                targetBlockEntity.isShapeDirty = true;
+            }
+            // }
+        }
+    }
 }

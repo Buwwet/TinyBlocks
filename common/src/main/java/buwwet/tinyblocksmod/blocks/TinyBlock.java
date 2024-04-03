@@ -113,9 +113,6 @@ public class TinyBlock extends Block implements EntityBlock {
                 }
             }
         }
-
-        TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) level.getBlockEntity(blockPos);
-        tinyBlockEntity.isShapeDirty = true;
     }
 
     @Override
@@ -154,66 +151,8 @@ public class TinyBlock extends Block implements EntityBlock {
 
             // TODO: some tools have special interactions with some blocks (ex, axe with copper, so we need to add that check).
             if (player.getMainHandItem().getItem() instanceof BlockItem) {
-                // Do some magic to get the inner block position of where we are looking at + our direction.
-                // Then when we get the storage position of THAT subtract the direction so that we target the block that is required to then
-                // place the block where we really want.
 
-                Vector3f directionStep = blockHitResult.getDirection().step().div(4.2f);
-
-                Vector3f placeBlockInnerPos = blockHitResult.getLocation().toVector3f()
-                        .add(directionStep);
-
-                // Get the tiny block position of the target.
-                int tinyBlockX = (int) Math.floor(placeBlockInnerPos.x);
-                int tinyBlockY = (int) Math.floor(placeBlockInnerPos.y);
-                int tinyBlockZ = (int) Math.floor(placeBlockInnerPos.z);
-
-                BlockPos targetTinyBlockPos = new BlockPos(tinyBlockX, tinyBlockY, tinyBlockZ);
-
-                BlockPos targetedBlockPos = LevelBlockStorageUtil.getStoragePosOfBlockInside(targetTinyBlockPos, placeBlockInnerPos);
-
-                BlockHitResult placeBlockHitResult = new BlockHitResult(
-                        new Vec3(placeBlockInnerPos.sub(directionStep)),
-                        blockHitResult.getDirection(),
-                        targetedBlockPos,
-                        false
-                );
-
-                // Check if the targeted tiny block pos is a replaceable block (like air) or an actual tiny block.
-                Block targetBlockType = level.getBlockState(targetTinyBlockPos).getBlock();
-
-                if (targetBlockType instanceof AirBlock || targetBlockType instanceof TinyBlock) {
-
-                    if (targetBlockType instanceof AirBlock) {
-                        // Replace the air block with a tiny block.
-                        level.setBlockAndUpdate(targetTinyBlockPos, TinyBlocksMod.TINY_BLOCK.get().defaultBlockState());
-                        // Do this before using the item, or the newly placed block will be cleared.
-                    }
-
-                    // Use the item
-                    InteractionResult itemUse = player.getMainHandItem().useOn(
-                            new UseOnContext(
-                                    player, interactionHand, placeBlockHitResult
-                            )
-                    );
-
-
-
-                    //if (targetBlockType instanceof TinyBlock) {
-                        // If the targeted host of the inner block is a tiny block, mark its shape as dirty.
-                        TinyBlockEntity targetBlockEntity = (TinyBlockEntity) level.getBlockEntity(targetTinyBlockPos);
-
-                        // Success! Make the targeted one dirty
-                        if (itemUse == InteractionResult.SUCCESS) {
-                            targetBlockEntity.isShapeDirty = true;
-                        }
-                   // }
-                }
-
-
-
-
-
+                LevelBlockStorageUtil.placeInnerBlock(player, blockHitResult);
 
 
 
