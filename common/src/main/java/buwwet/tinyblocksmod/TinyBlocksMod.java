@@ -4,6 +4,7 @@ import buwwet.tinyblocksmod.blocks.TinyBlock;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import buwwet.tinyblocksmod.blocks.entities.render.TinyBlockEntityRenderer;
 import buwwet.tinyblocksmod.client.ClientBlockBreaking;
+import buwwet.tinyblocksmod.networking.NetworkPackets;
 import buwwet.tinyblocksmod.world.ClientStorageChunkManager;
 import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
 import com.google.common.base.Suppliers;
@@ -87,20 +88,16 @@ public class TinyBlocksMod {
     public static final RegistrySupplier<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () ->
             new Item(new Item.Properties().arch$tab(TinyBlocksMod.EXAMPLE_TAB)));
 
-    // PACKETS C2S
-    public static final ResourceLocation SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET = new ResourceLocation(MOD_ID, "serverbound-block-chunk-request-packet");
 
-    /** Sends the tiny block pos and the storage block pos of the inner block that we want to break */
-    public static final ResourceLocation SERVERBOUND_BREAK_INNER_BLOCK = new ResourceLocation(MOD_ID, "serverbound-break-inner-block");
-
-    // PACKETS S2C
-    public static final ResourceLocation CLIENTBOUND_DIRTY_BLOCK_UPDATE_PACKET = new ResourceLocation(MOD_ID, "clientbound-dirty-block-update-packet");
-    
     public static void init() {
         TABS.register();
         ITEMS.register();
         BLOCKS.register();
         BLOCK_ENTITY_TYPES.register();
+
+        // Init networking.
+        NetworkPackets.init_client();
+        NetworkPackets.init_server();
 
         // Register the rendering for the block entity.
         BlockEntityRendererRegistry.register(TINY_BLOCK_ENTITY.get(), new TinyBlockEntityRenderer(null));
@@ -109,37 +106,7 @@ public class TinyBlocksMod {
 
 
         // PACKETS! Maybe move them somewhere else.
-        NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET, ((buf, context) -> {
-            BlockPos tinyBlockPos = BlockPos.of(buf.getLong(0));
-            ServerStorageChunkManager.requestStorageChunk(context.getPlayer(), tinyBlockPos);
-        }));
 
-        NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_BREAK_INNER_BLOCK, ((buf, context) -> {
-            BlockPos innerBlockPos = buf.readBlockPos();
-            BlockPos tinyBlockPos = buf.readBlockPos();
-
-            // Get the block drops of the targeted inner block and give them to the player.
-
-            ServerLevel level = (ServerLevel) context.getPlayer().level();
-            Item blockItem = level.getBlockState(innerBlockPos).getBlock().asItem();
-            context.getPlayer().getInventory().add(blockItem.getDefaultInstance());
-
-
-            context.getPlayer().level().setBlockAndUpdate(innerBlockPos, Blocks.AIR.defaultBlockState());
-
-
-            // Tell all the clients that have to chunk loaded to recalculate.
-            ChunkPos chunkPos = context.getPlayer().level().getChunkAt(innerBlockPos).getPos();
-
-            FriendlyByteBuf new_buf = new FriendlyByteBuf(Unpooled.buffer());
-            new_buf.writeChunkPos(chunkPos);
-            new_buf.writeBlockPos(tinyBlockPos);
-        }));
-
-        // SERVER TO CLIENT PACKETS
-        NetworkManager.registerReceiver(NetworkManager.Side.S2C, CLIENTBOUND_DIRTY_BLOCK_UPDATE_PACKET, ((buf, context) -> {
-            ClientStorageChunkManager.handleClientBoundDirtyChunkPacket(buf, context);
-        }));
 
         //TODO thing that tells client to stop loading the chunk as they are too far away from the tiny block
 

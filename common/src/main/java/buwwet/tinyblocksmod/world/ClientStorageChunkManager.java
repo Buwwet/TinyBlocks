@@ -4,6 +4,7 @@ package buwwet.tinyblocksmod.world;
 import buwwet.tinyblocksmod.TinyBlocksMod;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import buwwet.tinyblocksmod.client.ClientExtraChunkStorage;
+import buwwet.tinyblocksmod.networking.NetworkPackets;
 import dev.architectury.networking.NetworkManager;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
@@ -49,7 +50,7 @@ public class ClientStorageChunkManager {
         // Request for the server to send the TinyBlock's chunk.
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeBlockPos(tinyBlockEntity.getBlockPos());
-        NetworkManager.sendToServer(TinyBlocksMod.SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET, buf);
+        NetworkManager.sendToServer(NetworkPackets.SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET, buf);
 
     }
 

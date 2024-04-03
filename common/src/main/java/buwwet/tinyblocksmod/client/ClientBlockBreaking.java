@@ -2,6 +2,7 @@ package buwwet.tinyblocksmod.client;
 
 import buwwet.tinyblocksmod.TinyBlocksMod;
 import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
+import buwwet.tinyblocksmod.networking.NetworkPackets;
 import buwwet.tinyblocksmod.world.LevelBlockStorageUtil;
 import dev.architectury.networking.NetworkManager;
 import io.netty.buffer.Unpooled;
@@ -102,7 +103,7 @@ public class ClientBlockBreaking {
             FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
             buf.writeBlockPos(targetInnerBlock);
             buf.writeBlockPos(tinyBlockPos);
-            NetworkManager.sendToServer(TinyBlocksMod.SERVERBOUND_BREAK_INNER_BLOCK, buf);
+            NetworkManager.sendToServer(NetworkPackets.SERVERBOUND_BREAK_INNER_BLOCK, buf);
         }
     }
 
