@@ -48,6 +48,7 @@ public class TinyBlockEntity extends BlockEntity {
 
         // Set up a placeholder shape.
         shape = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+        collisionShape = Shapes.box(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
         isShapeDirty = true;
 
         // Append ourselves to the server's list.
@@ -92,7 +93,7 @@ public class TinyBlockEntity extends BlockEntity {
     /** Gets the shape of the block, recalculates if shape is marked as dirty. */
     public VoxelShape getShape() {
 
-        if (isShapeDirty) {
+        if (isShapeDirty || shape.isEmpty()) {
             recalculateShape();
             recalculateCollisionShape();
             isShapeDirty = false;
@@ -103,7 +104,7 @@ public class TinyBlockEntity extends BlockEntity {
 
     /** Gets the collsion shape of the block, recalculates if shape is marked as dirty. */
     public VoxelShape getCollisionShape() {
-        if (isShapeDirty) {
+        if (isShapeDirty || shape.isEmpty()) {
             recalculateShape();
             recalculateCollisionShape();
             isShapeDirty = false;

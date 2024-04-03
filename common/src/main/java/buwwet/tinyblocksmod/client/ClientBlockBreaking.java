@@ -8,8 +8,8 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +22,9 @@ public class ClientBlockBreaking {
     public static BlockPos targetInnerBlock = null;
     @Nullable
     public static BlockPos tinyBlockPos = null;
+
+    @Nullable
+    public static float destroySpeed;
 
 
     public static void tick() {
@@ -41,16 +44,16 @@ public class ClientBlockBreaking {
                     if (newInnerBlockPos.asLong() == targetInnerBlock.asLong()) {
                         // Tick the timer by an amount (idk how much), soo.
                         // Have to take into account hardness I think
-                        breakProgress += 1.0f;
+
+                        breakProgress += destroySpeed;
                     } else {
                         // We are looking at a new target!
                         reset();
-                        targetInnerBlock = newInnerBlockPos;
-                        tinyBlockPos = hitResult.getBlockPos();
+                        setNewBlock(hitResult.getBlockPos(), newInnerBlockPos);
                     }
                 } else {
-                    targetInnerBlock = newInnerBlockPos;
-                    tinyBlockPos = hitResult.getBlockPos();
+                    // We are starting to look at something
+                    setNewBlock(hitResult.getBlockPos(), newInnerBlockPos);
                 }
 
 
@@ -64,15 +67,30 @@ public class ClientBlockBreaking {
         }
 
         // Check if we broke a threshold or something
-        if (breakProgress > 10.0) {
+        if (breakProgress > 20.0f) {
+            breakBlock();
+            reset();
+        }
+
+        // Creative mode does not care about block strength calculations
+        if (breakProgress > 3.0f && Minecraft.getInstance().player.isCreative()) {
             breakBlock();
             reset();
         }
     }
 
+    private static void setNewBlock(BlockPos newTinyBlockPos, BlockPos newTargetBlockPos) {
+        targetInnerBlock = newTargetBlockPos;
+        tinyBlockPos = newTinyBlockPos;
+
+        // Get the block strength
+        BlockState blockState = Minecraft.getInstance().level.getBlockState(targetInnerBlock);
+        destroySpeed = Minecraft.getInstance().player.getMainHandItem().getDestroySpeed(blockState);
+    }
+
     private static void breakBlock() {
         if (targetInnerBlock != null) {
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("Broke tiny block!"), false);
+            //Minecraft.getInstance().player.displayClientMessage(Component.literal("Broke tiny block!"), false);
 
             // Update in the meantime.
             Minecraft.getInstance().level.setBlock(targetInnerBlock, Blocks.AIR.defaultBlockState(), 0);
@@ -95,7 +113,12 @@ public class ClientBlockBreaking {
     }
 
     public static void startBreaking() {
+
         isBreaking = true;
+
+        if (Minecraft.getInstance().player.isCreative()) {
+            breakProgress = 100.0f;
+        }
     }
 
     public static void stopBreaking() {

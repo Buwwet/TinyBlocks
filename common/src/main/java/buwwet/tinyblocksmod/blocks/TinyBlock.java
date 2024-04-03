@@ -45,10 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class TinyBlock extends Block implements EntityBlock {
     public TinyBlock(Properties properties) {
-
         super(properties);
-
-
     }
 
     @Override
@@ -202,7 +199,7 @@ public class TinyBlock extends Block implements EntityBlock {
 
 
 
-                    if (targetBlockType instanceof TinyBlock) {
+                    //if (targetBlockType instanceof TinyBlock) {
                         // If the targeted host of the inner block is a tiny block, mark its shape as dirty.
                         TinyBlockEntity targetBlockEntity = (TinyBlockEntity) level.getBlockEntity(targetTinyBlockPos);
 
@@ -210,7 +207,7 @@ public class TinyBlock extends Block implements EntityBlock {
                         if (itemUse == InteractionResult.SUCCESS) {
                             targetBlockEntity.isShapeDirty = true;
                         }
-                    }
+                   // }
                 }
 
 

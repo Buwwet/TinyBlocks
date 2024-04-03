@@ -26,6 +26,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
@@ -36,8 +37,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -112,9 +115,15 @@ public class TinyBlocksMod {
         }));
 
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_BREAK_INNER_BLOCK, ((buf, context) -> {
-            //TODO: actually request the tiny block position in the packet and update its counter.
             BlockPos innerBlockPos = buf.readBlockPos();
             BlockPos tinyBlockPos = buf.readBlockPos();
+
+            // Get the block drops of the targeted inner block and give them to the player.
+
+            ServerLevel level = (ServerLevel) context.getPlayer().level();
+            Item blockItem = level.getBlockState(innerBlockPos).getBlock().asItem();
+            context.getPlayer().getInventory().add(blockItem.getDefaultInstance());
+
 
             context.getPlayer().level().setBlockAndUpdate(innerBlockPos, Blocks.AIR.defaultBlockState());
 
@@ -125,7 +134,6 @@ public class TinyBlocksMod {
             FriendlyByteBuf new_buf = new FriendlyByteBuf(Unpooled.buffer());
             new_buf.writeChunkPos(chunkPos);
             new_buf.writeBlockPos(tinyBlockPos);
-            //NetworkManager.sendToPlayers(ServerStorageChunkManager.loadedChunksByPlayers.get(chunkPos), CLIENTBOUND_DIRTY_BLOCK_UPDATE_PACKET, new_buf);
         }));
 
         // SERVER TO CLIENT PACKETS
