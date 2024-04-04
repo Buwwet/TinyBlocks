@@ -11,7 +11,9 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.AirBlock;
@@ -49,28 +51,36 @@ public class NetworkPackets {
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET, ((buf, context) -> {
             BlockPos tinyBlockPos = BlockPos.of(buf.getLong(0));
             ServerStorageChunkManager.requestStorageChunk(context.getPlayer(), tinyBlockPos);
+
+
         }));
 
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_BREAK_INNER_BLOCK, ((buf, context) -> {
+
+            // Read the data from the buffer as we are going to switch threads soon.
             BlockPos innerBlockPos = buf.readBlockPos();
             BlockPos tinyBlockPos = buf.readBlockPos();
 
-            // Get the block drops of the targeted inner block and give them to the player, if the player isn't in creative.
-            if (!context.getPlayer().isCreative()) {
+            // Ask the main thread if it could run this for us (so that we can access BlockEntities)
+            MinecraftServer server = context.getPlayer().level().getServer();
+            server.executeIfPossible(() -> {
                 ServerLevel level = (ServerLevel) context.getPlayer().level();
-                Item blockItem = level.getBlockState(innerBlockPos).getBlock().asItem();
-                context.getPlayer().getInventory().add(blockItem.getDefaultInstance());
-            }
 
-            // Break the block
-            context.getPlayer().level().setBlockAndUpdate(innerBlockPos, Blocks.AIR.defaultBlockState());
+                // Get the block drops of the targeted inner block and give them to the player, if the player isn't in creative.
+                if (!context.getPlayer().isCreative()) {
+                    Item blockItem = level.getBlockState(innerBlockPos).getBlock().asItem();
+                    context.getPlayer().getInventory().add(blockItem.getDefaultInstance());
+                }
 
-            // Tell all the clients that have to chunk loaded to recalculate.
-            ChunkPos chunkPos = context.getPlayer().level().getChunkAt(innerBlockPos).getPos();
+                // Remove the block from the world
+                level.setBlockAndUpdate(innerBlockPos, Blocks.AIR.defaultBlockState());
 
-            FriendlyByteBuf new_buf = new FriendlyByteBuf(Unpooled.buffer());
-            new_buf.writeChunkPos(chunkPos);
-            new_buf.writeBlockPos(tinyBlockPos);
+                // Recalculate the shape!
+                TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) level.getBlockEntity(tinyBlockPos);
+                tinyBlockEntity.isShapeDirty = true;
+
+
+            });
         }));
 
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_PLACE_INNER_BLOCK, (buf, context) -> {
