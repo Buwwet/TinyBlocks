@@ -54,6 +54,8 @@ public class TinyBlockEntity extends BlockEntity {
         // Append ourselves to the server's list.
         if (Minecraft.getInstance().player == null) {
             ServerStorageChunkManager.addBlockListenerToChunk(this);
+        } else {
+            ClientStorageChunkManager.requestStorageChunk(this);
         }
     }
 
