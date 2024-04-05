@@ -20,7 +20,8 @@ import org.joml.Vector3f;
 
 public class LevelBlockStorageUtil {
 
-    public static int WORLD_STORAGE_START = 1000;
+    // 30K
+    public static int WORLD_STORAGE_START = 30000;
 
     // Returns either a 1 or a -1 whether the number is negative or positive
     public static int sinageInt(int i) {
