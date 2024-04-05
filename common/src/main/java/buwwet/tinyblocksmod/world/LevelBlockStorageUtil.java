@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
@@ -191,5 +192,29 @@ public class LevelBlockStorageUtil {
             }
             // }
         }
+    }
+
+    public static boolean isTinyBlockEmpty(BlockPos tinyBlockPos, BlockGetter blockGetter) {
+
+
+        BlockPos storagePos = LevelBlockStorageUtil.getBlockStoragePosition(tinyBlockPos);
+
+        for (int z_offset = 0; z_offset < 4; z_offset++) {
+            for (int y_offset = 0; y_offset < 4; y_offset++) {
+                for (int x_offset = 0; x_offset < 4; x_offset++) {
+                    BlockPos offsetStorageBlockPos = storagePos.offset(x_offset, y_offset, z_offset);
+
+                    Block block = blockGetter.getBlockState(offsetStorageBlockPos).getBlock();
+
+                    if (!(block instanceof AirBlock)) {
+                        // There is a non-air block, so it's not empty.
+                        return false;
+                    }
+
+                }
+            }
+        }
+
+        return true;
     }
 }

@@ -79,6 +79,12 @@ public class NetworkPackets {
                 TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) level.getBlockEntity(tinyBlockPos);
                 tinyBlockEntity.isShapeDirty = true;
 
+                // Wait, check if the tiny block is all air
+               if (LevelBlockStorageUtil.isTinyBlockEmpty(tinyBlockPos, level)) {
+                   // It is.
+                   level.setBlockAndUpdate(tinyBlockPos, Blocks.AIR.defaultBlockState());
+               }
+
 
             });
         }));
