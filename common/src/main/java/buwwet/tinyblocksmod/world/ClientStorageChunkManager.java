@@ -34,7 +34,7 @@ public class ClientStorageChunkManager {
         ChunkPos chunkPos = new ChunkPos(tinyBlockEntity.getBlockStoragePosition());
 
         // Check if the chunk is already supposed to be loaded.
-        if (loadedChunks.containsKey(chunkPos)) {
+        if (loadedChunks.containsKey(chunkPos) && storage.hasChunk(chunkPos)) {
             // We do not need to load the chunk, but we do need to add this block position if is not already here
             if (!loadedChunks.get(chunkPos).contains(tinyBlockEntity.getBlockPos())) {
                 loadedChunks.get(chunkPos).add(tinyBlockEntity.getBlockPos());
