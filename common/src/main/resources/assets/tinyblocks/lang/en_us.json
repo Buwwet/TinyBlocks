@@ -1,3 +1,5 @@
 {
-  "item.examplemod.example_item": "Example Item"
+  "item.examplemod.example_item": "Example Item",
+  "key.tinyblocksmod.toggle_tiny_placement": "Toggle placing tiny blocks",
+  "category.tinymod.test": "test"
 }

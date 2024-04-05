@@ -15,6 +15,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class ClientBlockBreaking {
+
+    public static boolean placingTiny = false;
+
     public static boolean isBreaking = false;
 
     public static float breakProgress = 0;

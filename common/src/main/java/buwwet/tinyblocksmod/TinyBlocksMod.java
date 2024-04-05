@@ -9,18 +9,21 @@ import buwwet.tinyblocksmod.world.ClientStorageChunkManager;
 import buwwet.tinyblocksmod.world.LevelBlockStorageUtil;
 import buwwet.tinyblocksmod.world.ServerStorageChunkManager;
 import com.google.common.base.Suppliers;
+import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.registry.CreativeTabRegistry;
+import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.RenderTypeRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
 import io.netty.buffer.Unpooled;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
@@ -79,7 +82,7 @@ public class TinyBlocksMod {
                .isRedstoneConductor((blockState, blockGetter, blockPos) -> false)
                .dynamicShape()
                .noOcclusion()
-
+               .strength(1000f)
 
        )
     );
@@ -91,11 +94,20 @@ public class TinyBlocksMod {
             new Item(new Item.Properties().arch$tab(TinyBlocksMod.EXAMPLE_TAB)));
 
 
+    public static final KeyMapping TOGGLE_SMALL_PLACING = new KeyMapping(
+            "key.tinyblocksmod.toggle_tiny_placement",
+            InputConstants.Type.KEYSYM,
+            InputConstants.KEY_G,
+            "category.tinymod.test"
+    );
+
     public static void init() {
         TABS.register();
         ITEMS.register();
         BLOCKS.register();
         BLOCK_ENTITY_TYPES.register();
+
+        KeyMappingRegistry.register(TOGGLE_SMALL_PLACING);
 
         // Init networking.
         NetworkPackets.init_client();
@@ -135,6 +147,9 @@ public class TinyBlocksMod {
                          BlockHitResult hitResult = (BlockHitResult) Minecraft.getInstance().hitResult;
 
                          //TODO: tiny block placement mode check
+                         if (!ClientBlockBreaking.placingTiny) {
+                             return EventResult.pass();
+                         }
 
                          if (hitResult.getType() == HitResult.Type.BLOCK) {
                              // Check if the targeted block in question is a tiny block
@@ -179,8 +194,14 @@ public class TinyBlocksMod {
              return EventResult.pass();
          });
 
-        ClientTickEvent.CLIENT_PRE.register((minecraft) -> {
+        ClientTickEvent.CLIENT_POST.register((minecraft) -> {
             ClientBlockBreaking.tick();
+
+            while (TOGGLE_SMALL_PLACING.consumeClick()) {
+                ClientBlockBreaking.placingTiny = !ClientBlockBreaking.placingTiny;
+
+                Minecraft.getInstance().gui.setOverlayMessage(Component.literal("Toggled, is: " + ClientBlockBreaking.placingTiny), false);
+            }
         });
 
 
