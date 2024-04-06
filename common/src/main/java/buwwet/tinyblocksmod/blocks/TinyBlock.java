@@ -168,9 +168,6 @@ public class TinyBlock extends Block implements EntityBlock {
             tinyBlockEntity.isShapeDirty = true;
         }
 
-
-
-
         return InteractionResult.CONSUME;
     }
 

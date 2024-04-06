@@ -15,12 +15,16 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
+
+import java.util.List;
 
 public class NetworkPackets {
 
@@ -68,8 +72,20 @@ public class NetworkPackets {
 
                 // Get the block drops of the targeted inner block and give them to the player, if the player isn't in creative.
                 if (!context.getPlayer().isCreative()) {
-                    Item blockItem = level.getBlockState(innerBlockPos).getBlock().asItem();
-                    context.getPlayer().getInventory().add(blockItem.getDefaultInstance());
+
+                    BlockState blockState = level.getBlockState(innerBlockPos);
+
+                    context.getPlayer();
+                    //TODO get loop params
+                    List<ItemStack> blockItems = blockState.getBlock().getDrops(
+                            blockState,
+                            level,
+                            innerBlockPos,
+                            level.getBlockEntity(innerBlockPos)
+                    );
+                    for (ItemStack item : blockItems) {
+                        context.getPlayer().getInventory().add(item);
+                    }
                 }
 
                 // Remove the block from the world
