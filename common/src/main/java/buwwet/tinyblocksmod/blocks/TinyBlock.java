@@ -120,9 +120,6 @@ public class TinyBlock extends Block implements EntityBlock {
     /** Runs when the player wants to INTERACT with a tiny block, not place it. */
     public InteractionResult use(BlockState blockState, Level level, BlockPos blockPos, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult) {
 
-
-        // Let's get the tiny block position using the block hit result
-
         // Don't run if we are not a TinyBlockEntity
         if (level.getBlockEntity(blockPos) instanceof TinyBlockEntity) {
         } else {
@@ -131,8 +128,7 @@ public class TinyBlock extends Block implements EntityBlock {
 
         TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) level.getBlockEntity(blockPos);
 
-
-
+        // Let's get the tiny block position using the block hit result
         BlockPos resultingBlockPos = LevelBlockStorageUtil.getBlockStorageOfInnerBlock(blockHitResult);
         BlockState block = level.getBlockState(resultingBlockPos);
 
@@ -157,8 +153,6 @@ public class TinyBlock extends Block implements EntityBlock {
             tinyBlockEntity.isShapeDirty = true;
         }
 
-
-
         // Our interaction wasn't consumed, so we procede to place block!
         if (interactionResult == InteractionResult.PASS) {
             // Place a block if the item we select is a block item.
@@ -169,7 +163,6 @@ public class TinyBlock extends Block implements EntityBlock {
                 player.getMainHandItem().useOn(new UseOnContext(player, player.getUsedItemHand(), newBlockHitResult));
             }
         }
-
 
         return InteractionResult.CONSUME;
     }
