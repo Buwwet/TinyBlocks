@@ -90,6 +90,11 @@ public class ClientBlockBreaking {
         // Get the block strength
         BlockState blockState = Minecraft.getInstance().level.getBlockState(targetInnerBlock);
         destroySpeed = Minecraft.getInstance().player.getMainHandItem().getDestroySpeed(blockState);
+
+        // Check if the block is insta mine, (like wheat and grass)
+        if (blockState.getBlock().defaultDestroyTime() == 0.0f) {
+            destroySpeed = 20.0f;
+        }
     }
 
     private static void breakBlock() {
