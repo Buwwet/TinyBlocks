@@ -75,8 +75,6 @@ public class NetworkPackets {
 
                     BlockState blockState = level.getBlockState(innerBlockPos);
 
-                    context.getPlayer();
-                    //TODO get loop params
                     List<ItemStack> blockItems = blockState.getBlock().getDrops(
                             blockState,
                             level,

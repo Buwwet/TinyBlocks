@@ -21,9 +21,9 @@ public abstract class EntityMixin {
     @Inject(method = "distanceToSqr(DDD)D", cancellable = true, at = @At("HEAD"))
     private void distanceToSquareRootOverride(double d, double e, double f, CallbackInfoReturnable<Double> cir) {
         BlockPos blockPos = new BlockPos((int) d, (int) e, (int) f);
-        ChunkPos chunkPos = level.getChunkAt(blockPos).getPos();
+        ChunkPos chunkPos = new ChunkPos(blockPos);
 
-        if (ServerStorageChunkManager.loadedChunksByBlocks.containsKey(chunkPos)) {
+        if (ServerStorageChunkManager.loadedChunksByPlayers.containsKey(chunkPos)) {
             //TinyBlocksMod.LOGGER.info("" + chunkPos);
 
             cir.setReturnValue(2.0);
