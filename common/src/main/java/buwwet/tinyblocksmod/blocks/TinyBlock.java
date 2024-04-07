@@ -147,26 +147,29 @@ public class TinyBlock extends Block implements EntityBlock {
         // Get the result from interacting with this block.
         InteractionResult interactionResult = block.use(level, player, interactionHand, newBlockHitResult);
 
-        // TODO: some tools have special interactions with some blocks (ex, axe with copper, so we need to add that check).
         if (interactionResult == InteractionResult.CONSUME) {
             // There must have been a change!
             tinyBlockEntity.isShapeDirty = true;
-        }
-
-
-        // Our interaction wasn't consumed, so we procede to placea block!
-        if (interactionResult == InteractionResult.PASS) {
-            if (player.getMainHandItem().getItem() instanceof BlockItem) {
-
-                LevelBlockStorageUtil.placeInnerBlock(player, blockHitResult);
-
-            }
         }
 
         // InteractionResult isn't viable when we are the client, so...
         if (level.isClientSide) {
             tinyBlockEntity.isShapeDirty = true;
         }
+
+
+
+        // Our interaction wasn't consumed, so we procede to place block!
+        if (interactionResult == InteractionResult.PASS) {
+            // Place a block if the item we select is a block item.
+            if (player.getMainHandItem().getItem() instanceof BlockItem) {
+                LevelBlockStorageUtil.placeInnerBlock(player, blockHitResult);
+            } else {
+                // Use the item on the block for certain interactions (axe. hoes, etc)
+                player.getMainHandItem().useOn(new UseOnContext(player, player.getUsedItemHand(), newBlockHitResult));
+            }
+        }
+
 
         return InteractionResult.CONSUME;
     }
