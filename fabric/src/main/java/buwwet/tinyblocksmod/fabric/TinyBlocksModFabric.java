@@ -48,9 +48,6 @@ public class TinyBlocksModFabric implements ModInitializer {
             if (level != null) {
                 Vec3 playerPos = Minecraft.getInstance().player.position();
 
-                Vec3 lookStartPos = new Vec3(start_pos.x, start_pos.y, start_pos.z).add(playerPos);
-                Vec3 lookEndPos = new Vec3(start_pos.x, start_pos.y, start_pos.z).multiply(4.0, 4.0, 4.0).add(playerPos);
-
                 /*
                 BlockHitResult blockHitResult = level.isBlockInLine(
                         new ClipBlockStateContext(lookStartPos, lookEndPos, blockState -> {
@@ -66,21 +63,16 @@ public class TinyBlocksModFabric implements ModInitializer {
 
 
                         // Start rendering the line on the player position.
-                        float relHitX = (float) (hitLocation.x - playerPos.x + start_pos.x);
-                        float relHitY = (float) (hitLocation.y - playerPos.y + start_pos.y);
-                        float relHitZ = (float) (hitLocation.z - playerPos.z + start_pos.z);
 
-                        //Minecraft.getInstance().particleEngine.createParticle(new DustParticleOptions(new Vector3f(1.0f, 1.0f, 1.0f), 1.0f), hitLocation.x, hitLocation.y, hitLocation.z, 1.0f, 1.0f, 1.0f);
+                        Vec3 cameraPos = last.camera().getPosition();
+                        Vector3f viewVector = last.camera().getLookVector();
 
+                        drawBox(multiBufferSource, poseStack,
 
-
-                        //drawLine(multiBufferSource, poseStack, start_pos.x, start_pos.y, start_pos.z, relHitX, relHitY, relHitZ);
-
-                        float snapX = snapToFourths((float) hitLocation.x + start_pos.x) - (float) playerPos.x;
-                        float snapY = snapToFourths((float) hitLocation.y + start_pos.y) - (float) playerPos.y;
-                        float snapZ = snapToFourths((float) hitLocation.z) - (float) playerPos.z;
-
-                        drawBox(multiBufferSource, poseStack, snapX, snapY, snapZ, 0.25f);
+                                (float) (snapToFourths((float) hitLocation.x) - cameraPos.x) + viewVector.x,
+                                (float) (hitLocation.y - cameraPos.y) + viewVector.y,
+                                (float) (snapToFourths((float) hitLocation.z) - cameraPos.z) + + viewVector.z,
+                                0.25f);
 
                     }
                 }

@@ -103,7 +103,7 @@ public class ServerStorageChunkManager {
             if (!loadedChunksByPlayers.containsKey(chunkPos)) {
                 // Chunk hasn't been loaded yet! Force it in!
                 serverLevel.setChunkForced(chunkPos.x, chunkPos.z, true);
-
+                //TODO: add ticking
                 ArrayList<ServerPlayer> newListPos = new ArrayList<>();
                 newListPos.add(serverPlayer);
                 loadedChunksByPlayers.put(chunkPos, newListPos);
