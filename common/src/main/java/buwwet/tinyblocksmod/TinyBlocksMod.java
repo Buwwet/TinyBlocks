@@ -39,6 +39,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -212,13 +213,15 @@ public class TinyBlocksMod {
                 return;
             }
 
+            int tickSpeed = server.getWorldData().getGameRules().getInt(GameRules.RULE_RANDOMTICKING);
+
             server.getAllLevels().forEach(serverLevel -> {
 
                 // Tick all the chunks that we forced to load.
                 for (Iterator<ChunkPos> it = ServerStorageChunkManager.getExtraLoadedChunks(); it.hasNext(); ) {
                     ChunkPos chunkPos = it.next();
                     LevelChunk chunk = serverLevel.getChunk(chunkPos.x, chunkPos.z);
-                    serverLevel.tickChunk(chunk, 1);
+                    serverLevel.tickChunk(chunk, tickSpeed);
                 }
             });
         });
