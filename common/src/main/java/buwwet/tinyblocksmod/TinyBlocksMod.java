@@ -97,7 +97,7 @@ public class TinyBlocksMod {
     public static final KeyMapping TOGGLE_SMALL_PLACING = new KeyMapping(
             "key.tinyblocksmod.toggle_tiny_placement",
             InputConstants.Type.KEYSYM,
-            InputConstants.KEY_G,
+            InputConstants.KEY_LALT,
             "category.tinymod.test"
     );
 
@@ -197,11 +197,7 @@ public class TinyBlocksMod {
         ClientTickEvent.CLIENT_POST.register((minecraft) -> {
             ClientBlockBreaking.tick();
 
-            while (TOGGLE_SMALL_PLACING.consumeClick()) {
-                ClientBlockBreaking.placingTiny = !ClientBlockBreaking.placingTiny;
-
-                Minecraft.getInstance().gui.setOverlayMessage(Component.literal("Toggled, is: " + ClientBlockBreaking.placingTiny), false);
-            }
+            ClientBlockBreaking.placingTiny = TOGGLE_SMALL_PLACING.isDown();
         });
 
 
