@@ -14,6 +14,7 @@ import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
@@ -42,10 +43,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -126,6 +129,7 @@ public class TinyBlocksMod {
 
         // EVENTS! Also maybe move them somewhere else.
 
+        // CLIENT
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
             // Clear our custom caches.
             ClientStorageChunkManager.clearCache();
@@ -198,6 +202,25 @@ public class TinyBlocksMod {
             ClientBlockBreaking.tick();
 
             ClientBlockBreaking.placingTiny = TOGGLE_SMALL_PLACING.isDown();
+        });
+
+
+        // SERVER EVENTS
+
+        TickEvent.ServerLevelTick.SERVER_PRE.register((server) -> {
+            if (server == null) {
+                return;
+            }
+
+            server.getAllLevels().forEach(serverLevel -> {
+
+                // Tick all the chunks that we forced to load.
+                for (Iterator<ChunkPos> it = ServerStorageChunkManager.getExtraLoadedChunks(); it.hasNext(); ) {
+                    ChunkPos chunkPos = it.next();
+                    LevelChunk chunk = serverLevel.getChunk(chunkPos.x, chunkPos.z);
+                    serverLevel.tickChunk(chunk, 1);
+                }
+            });
         });
 
 

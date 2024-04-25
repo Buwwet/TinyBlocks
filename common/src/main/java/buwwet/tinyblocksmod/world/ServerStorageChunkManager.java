@@ -28,9 +28,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Math;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class ServerStorageChunkManager {
 
@@ -100,9 +98,16 @@ public class ServerStorageChunkManager {
             // Get the chunk storage position of the tiny entity block
             ChunkPos chunkPos = new ChunkPos(tinyBlockStoragePosition);
 
+            TinyBlockEntity tinyBlockEntity = (TinyBlockEntity) serverLevel.getBlockEntity(tinyBlockPos);
+            if (tinyBlockEntity != null) {
+                addBlockListenerToChunk(tinyBlockEntity);
+            }
+
             if (!loadedChunksByPlayers.containsKey(chunkPos)) {
                 // Chunk hasn't been loaded yet! Force it in!
                 serverLevel.setChunkForced(chunkPos.x, chunkPos.z, true);
+
+
                 //TODO: add ticking
                 ArrayList<ServerPlayer> newListPos = new ArrayList<>();
                 newListPos.add(serverPlayer);
@@ -134,6 +139,12 @@ public class ServerStorageChunkManager {
         // Check if the block actually still has players
         //level.unload()
         //setchunkforced(false
+
+    }
+
+    public static Iterator<ChunkPos> getExtraLoadedChunks() {
+
+        return new HashMap<>(loadedChunksByPlayers).keySet().iterator();
 
     }
 }

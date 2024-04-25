@@ -54,7 +54,12 @@ public class NetworkPackets {
     public static void init_server() {
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, SERVERBOUND_BLOCK_CHUNK_REQUEST_PACKET, ((buf, context) -> {
             BlockPos tinyBlockPos = BlockPos.of(buf.getLong(0));
-            ServerStorageChunkManager.requestStorageChunk(context.getPlayer(), tinyBlockPos);
+
+            MinecraftServer server = context.getPlayer().level().getServer();
+            server.executeIfPossible(() -> {
+                ServerStorageChunkManager.requestStorageChunk(context.getPlayer(), tinyBlockPos);
+            });
+
 
 
         }));
