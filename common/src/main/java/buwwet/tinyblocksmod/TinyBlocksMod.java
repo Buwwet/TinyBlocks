@@ -84,9 +84,11 @@ public class TinyBlocksMod {
        new TinyBlock(BlockBehaviour.Properties.of()
                .isSuffocating((blockState, blockGetter, blockPos) -> false)
                .isRedstoneConductor((blockState, blockGetter, blockPos) -> false)
+               .strength(20.0f)
                .dynamicShape()
                .noOcclusion()
                .strength(1000f)
+
 
        )
     );

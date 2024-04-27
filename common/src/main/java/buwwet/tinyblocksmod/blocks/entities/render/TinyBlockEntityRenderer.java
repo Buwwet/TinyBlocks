@@ -4,24 +4,32 @@ import buwwet.tinyblocksmod.blocks.entities.TinyBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class TinyBlockEntityRenderer implements BlockEntityRenderer<TinyBlockEntity>, BlockEntityRendererProvider<TinyBlockEntity> {
 
     BlockRenderDispatcher blockRenderDispatcher;
+
     public TinyBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         //NOT CORRECT!!! I just don't know how to register with context.
         blockRenderDispatcher = Minecraft.getInstance().getBlockRenderer();
+
     }
     @Override
     public void render(TinyBlockEntity blockEntity, float f, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, int j) {
@@ -67,7 +75,14 @@ public class TinyBlockEntityRenderer implements BlockEntityRenderer<TinyBlockEnt
                     } else {
                         // Normal block render.
                         BlockState blockState = blockEntity.getLevel().getBlockState(targetPosition);
-                        renderBlockWithOffset(blockState, poseStack, multiBufferSource, x_offset, y_offset, z_offset, i, j);
+                        if (blockState.getFluidState() != Fluids.EMPTY.defaultFluidState()) {
+                            // Block is a fluid!
+                            //renderFluidWithOffset(rootPosition, blockState, blockEntity.getLevel(), poseStack, multiBufferSource, x_offset, y_offset, z_offset);
+                            // TODO: for now just use lapis
+                            renderBlockWithOffset(Blocks.LAPIS_BLOCK.defaultBlockState(), poseStack, multiBufferSource, x_offset, y_offset, z_offset, i, j);
+                        } else {
+                            renderBlockWithOffset(blockState, poseStack, multiBufferSource, x_offset, y_offset, z_offset, i, j);
+                        }
                     }
                 }
             }
@@ -81,6 +96,22 @@ public class TinyBlockEntityRenderer implements BlockEntityRenderer<TinyBlockEnt
         */
     }
 
+    void renderFluidWithOffset(BlockPos blockPos, BlockState blockState, Level level, PoseStack poseStack, MultiBufferSource multiBufferSource, int x_offset, int y_offset, int z_offset) {
+        //poseStack.pushPose();
+        //poseStack.scale(0.25f, 0.25f, 0.25f);
+        //poseStack.translate(x_offset, y_offset, z_offset);
+
+        // Get water's render type
+        RenderType renderType = ItemBlockRenderTypes.getRenderLayer(blockState.getFluidState());
+        VertexConsumer vertexConsumer = multiBufferSource.getBuffer(renderType);
+
+        blockRenderDispatcher.renderLiquid(blockPos, level, vertexConsumer, blockState, blockState.getFluidState());
+        //vertexConsumer.endVertex();
+
+
+        //poseStack.popPose();
+    }
+
     void renderBlockWithOffset(BlockState blockState, PoseStack poseStack, MultiBufferSource multiBufferSource, int x_offset, int y_offset, int z_offset, int i, int j) {
         poseStack.pushPose();
         poseStack.scale(0.25f, 0.25f, 0.25f);
@@ -88,6 +119,8 @@ public class TinyBlockEntityRenderer implements BlockEntityRenderer<TinyBlockEnt
         //TODO Find a way to batch render this!!!
         //blockRenderDispatcher.renderBatched();
         blockRenderDispatcher.renderSingleBlock(blockState, poseStack, multiBufferSource, i, j);
+        //
+
         poseStack.popPose();
     }
 

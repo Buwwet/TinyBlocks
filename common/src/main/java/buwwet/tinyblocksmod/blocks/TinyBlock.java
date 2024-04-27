@@ -20,6 +20,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
@@ -156,7 +157,7 @@ public class TinyBlock extends Block implements EntityBlock {
         // Our interaction wasn't consumed, so we procede to place block!
         if (interactionResult == InteractionResult.PASS) {
             // Place a block if the item we select is a block item.
-            if (player.getMainHandItem().getItem() instanceof BlockItem) {
+            if (player.getMainHandItem().getItem() instanceof BlockItem || player.getMainHandItem().getItem() instanceof BucketItem) {
                 LevelBlockStorageUtil.placeInnerBlock(player, blockHitResult);
             } else {
                 // Use the item on the block for certain interactions (axe. hoes, etc)

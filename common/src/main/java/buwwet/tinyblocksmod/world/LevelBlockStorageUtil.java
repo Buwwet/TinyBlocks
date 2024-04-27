@@ -9,10 +9,12 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Math;
@@ -180,6 +182,14 @@ public class LevelBlockStorageUtil {
                             player, player.getUsedItemHand(), placeBlockHitResult
                     )
             );
+
+            if (player.getMainHandItem().getItem() instanceof BucketItem) {
+                BucketItem bucketItem = (BucketItem) player.getMainHandItem().getItem();
+                BlockState fluidBlockState = bucketItem.arch$getFluid().defaultFluidState().createLegacyBlock();
+
+                player.level().setBlockAndUpdate(targetedBlockPos, fluidBlockState);
+            }
+
 
 
 
