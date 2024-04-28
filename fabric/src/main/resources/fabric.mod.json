@@ -3,13 +3,13 @@
   "id": "tinyblocks",
   "version": "${version}",
   "name": "Tiny Blocks",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "A mod that adds support for building interactive structures at 1/4 of the normal scale.",
   "authors": [
-    "Me!"
+    "Buwwet"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/Buwwet/TinyBlocks",
+    "sources": "https://github.com/Buwwet/TinyBlocks"
   },
   "license": "Insert License Here",
   "icon": "assets/examplemod/icon.png",

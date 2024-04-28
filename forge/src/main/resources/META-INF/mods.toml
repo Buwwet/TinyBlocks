@@ -1,33 +1,33 @@
 modLoader = "javafml"
 loaderVersion = "[47,)"
-#issueTrackerURL = ""
+issueTrackerURL = "https://github.com/Buwwet/TinyBlocks"
 license = "Insert License Here"
 
 [[mods]]
-modId = "examplemod"
+modId = "tinyblocks"
 version = "${version}"
-displayName = "Example Mod"
-authors = "Me!"
+displayName = "TinyBlocks"
+authors = "Buwwet"
 description = '''
-This is an example description! Tell everyone what your mod is about!
+A mod that adds support for building interactive structures at 1/4 of the normal scale.
 '''
 #logoFile = ""
 
-[[dependencies.examplemod]]
+[[dependencies.tinyblocks]]
 modId = "forge"
 mandatory = true
 versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.examplemod]]
+[[dependencies.tinyblocks]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.examplemod]]
+[[dependencies.tinyblocks]]
 modId = "architectury"
 mandatory = true
 versionRange = "[9.1.12,)"
